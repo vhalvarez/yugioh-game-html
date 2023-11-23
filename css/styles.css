@@ -1,0 +1,113 @@
+body {
+	background-position: center center;
+	background-attachment: fixed;
+	background-repeat: no-repeat;
+	background-size: cover;
+	font-family: sans-serif;
+}
+
+.background {
+	height: auto;
+	padding: 20px;
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: cover;
+	background: url('../img/fondo/background-sparks.jpg');
+	animation: sparks-move 70s infinite linear;
+	position: relative;
+}
+
+.background::before,
+.background::after {
+	content: '';
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	top: 0;
+	left: 0;
+}
+.background::before {
+	opacity: 0.7;
+	background: url('../img/fondo/background-fixed-tl.png') left top fixed
+			no-repeat,
+		url('../img/fondo/background-fixed-rb.png') right bottom fixed no-repeat,
+		url('../img/fondo/background-blueflex.png') center center fixed;
+	background-size: auto, auto, 100% 100%;
+}
+.background::after {
+	background: repeating-linear-gradient(
+		rgba(0, 0, 0, 0.5),
+		rgba(0, 0, 0, 0.5) 1px,
+		rgba(0, 0, 0, 0) 0,
+		rgba(0, 0, 0, 0) 3px
+	);
+	z-index: -10;
+}
+
+@keyframes sparks-move {
+	0% {
+		background-position: center top;
+	}
+	100% {
+		background-position: center -1150px;
+	}
+}
+
+img {
+	display: block;
+}
+
+.global {
+	z-index: 100;
+}
+
+.botones > div {
+	z-index: 100;
+}
+
+.fila {
+	padding: 20px !important;
+	z-index: 100 !important;
+}
+
+.fila img {
+	width: 70px;
+	height: 102.25px;
+}
+.fila img:hover {
+	transform: scale(1.5);
+	cursor: pointer;
+}
+
+.oculto {
+	display: none;
+}
+
+.mostrar {
+	display: block;
+}
+
+#tableroMagicasPlayer {
+	z-index: 100;
+}
+
+/* .vida{
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+	border: thin solid rgba(255, 255, 255, 0.5);
+	position: relative;
+	width: 190px;
+	height: 20px;
+	color: blue;
+} */
+
+.glass {
+	background: rgba(0, 0, 0, 0.5);
+	border-radius: 16px;
+	box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+	backdrop-filter: blur(5px);
+	-webkit-backdrop-filter: blur(5px);
+	border: 1px solid rgba(0, 0, 0, 0.3);
+	z-index: 100;
+}

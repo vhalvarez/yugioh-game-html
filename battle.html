@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battle | Yu-Gi-Oh!</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- <script src="./js/app.js" type="module"></script> -->
+    <script src="./js/main.js" type="module">
+
+    </script>
+</head>
+
+<body>
+    <!-- CARTAS EN LA MANO DE YUGI -->
+
+    <div class="background">
+        <div id="cartasManoYugi" class="container">
+            <div class="row d-flex justify-content-center">
+                <div class="col-2 col-md-1 fila">
+                    <img src="img/mazo.png" id="mazoYugi">
+                </div>
+                <div class="col-2 col-md-1 fila">
+                    <img src="img/mazo.jpg" id="cy1" data-status="lleno">
+                </div>
+                <div class="col-2 col-md-1 fila">
+                    <img src="img/mazo.jpg" id="cy2" data-status="lleno">
+                </div>
+                <div class="col-2 col-md-1  fila">
+                    <img src="img/mazo.jpg" id="cy3" data-status="lleno">
+                </div>
+                <div class="col-2 col-md-1 fila">
+                    <img src="img/mazo.jpg" id="cy4" data-status="lleno">
+                </div>
+                <div class="col-2 col-md-1 fila">
+                    <img src="img/mazo.jpg" id="cy5" data-status="lleno">
+                </div>
+                <div class="col-2 col-md-1 fila oculto">
+                    <img src="img/mazo.jpg" id="cp6" data-status="vacio" onclick="" class="cartasacada">
+                </div>
+                <div class="col-2 col-md-1 fila oculto">
+                    <img src="img/mazo.jpg" id="cp7" data-status="vacio" onclick="" class="cartasacada">
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- TABLERO -->
+        <div id="cartasYugi" class="glass">
+            <!-- YUGI CAMPO HECHIZOS Y TRAMPA -->
+            <div id="tableroMagicasYugi">
+                <div class="container">
+                    <div class="row d-flex justify-content-center botones">
+                        <div class="col-2 col-md-1  fila" id="yma1" data-id="yma1" data-position="1"
+                            data-categoria="magicas" data-status="vacio" onclick="">
+
+                        </div>
+                        <div class="col-2 col-md-1  fila" id="yma2" data-id="yma2" data-position="2"
+                            data-categoria="magicas" data-status="vacio" onclick="">
+
+                        </div>
+                        <div class="col-2 col-md-1  fila" id="yma3" data-id="yma3" data-position="3"
+                            data-categoria="magicas" data-status="vacio" onclick="">
+
+                        </div>
+                        <div class="col-2 col-md-1  fila" id="yma4" data-id="yma4" data-position="4"
+                            data-categoria="magicas" data-status="vacio" onclick="">
+
+                        </div>
+                        <div class="col-2 col-md-1  fila" id="yma5" data-id="yma5" data-position="5"
+                            data-categoria="magicas" data-status="vacio" onclick="">
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- YUGI MUTO Y LP -->
+            <div style="width:300px; height: 100px; position: absolute; right:20px; top:100px;">
+                <div class="row">
+                    <div class="col-12 animated fadeIn retraso-1">
+                        <img src="img/yu1.png" style="width:auto; height: 100px; ">
+                    </div>
+                    <div class="col-12">
+                        <b>
+                            <p style="color:white">Yugi Muto</p>
+                        </b>
+                        <progress id="vidaYugi" class="vida" value="8000" max="8000"></progress>
+                        <b>
+                            <p style="color:white" id="vidaY"></p>
+                        </b>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ATAQUE YUGI -->
+            <div id="tableroMonstruoYugi" class="container">
+                <div class="row d-flex justify-content-center h-10" id="campoAtaqueYugi">
+                    <div class="col-2 col-md-1 fila" id="ymo1" data-id="ymo1" data-position="1"
+                        data-categoria="monstruo" data-status="vacio-monstruo-yugi" ></div>
+                    <div class="col-2 col-md-1 fila" id="ymo2" data-id="ymo2" data-position="2"
+                        data-categoria="monstruo" data-status="vacio-monstruo-yugi" ></div>
+                    <div class="col-2 col-md-1 fila" id="ymo3" data-id="ymo3" data-position="3"
+                        data-categoria="monstruo" data-status="vacio-monstruo-yugi" ></div>
+                    <div class="col-2 col-md-1 fila" id="ymo4" data-id="ymo4" data-position="4"
+                        data-categoria="monstruo" data-status="vacio-monstruo-yugi" ></div>
+                    <div class="col-2 col-md-1 fila" id="ymo5" data-id="ymo5" data-position="5"
+                        data-categoria="monstruo" data-status="vacio-monstruo-yugi" ></div>
+
+                </div>
+            </div>
+        </div>
+
+
+        <!-- BOTONES -->
+        <div class="container">
+            <div class="row d-flex justify-content-between botones">
+
+                <div class="animated fadeIn retraso-4 col-3 text-center">
+                    <button id="drawButton" type="button" class="btn btn-primary">Draw</button>
+                </div>
+
+                <div class="animated fadeIn retraso-4 col-3 text-center ">
+                    <button id="mainPhaseButton" type="button" class="btn btn-primary">Main Phase</button>
+                </div>
+
+
+                <div class="animated fadeIn retraso-4 col-3 text-center">
+                    <button id="battlePhaseButton" type="button"  class="btn btn-primary">Battle
+                        Phase</button>
+                </div>
+                <div class="animated fadeIn retraso-4 col-3 text-center">
+                    <button id="endPhaseButton" type="button" class="btn btn-primary">End Phase</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PLAYER CAMPO -->
+        <div class="glass ">
+
+            <!-- PLAYER PERSONAJE -->
+            <div style="width:300px; height: 100px; position: absolute; left:20px; bottom:100px;">
+                <div class="row">
+                    <div id="username" class="col-xs-1-3 animated fadeIn retraso-1">
+                        <span id="img" class="animated fadeIn retraso-1"></span>
+                    </div>
+                    <div id="username" class="col-xs-2-3">
+                        <b>
+                            <p style="color:white" id="nombre"></p>
+                        </b>
+                        <progress id="vidaPlayer" class="vida" value="8000" max="8000"></progress>
+                        <b>
+                            <p style="color:white" id="vidaP"></p>
+                        </b>
+                        <!-- <script>datosPersonaje()</script> -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- PLAYER ATAQUE -->
+            <div id="tableroMonstruoPlayer" class="container">
+                <div class="row d-flex justify-content-center botones" id="campoAtaque">
+                    <!-- <div class="col-2 col-md-1 fila" id="pmo1" data-id="pmo1" data-position="1"
+                        data-categoria="monstruo" data-status="vacio"
+                        onclick="ponerCartaPlayer(this); cartaDeAtaque(this);">
+
+                    </div>
+                    <div class="col-2 col-md-1 fila" id="pmo2" data-id="pmo2" data-position="2"
+                        data-categoria="monstruo" data-status="vacio"
+                        onclick="ponerCartaPlayer(this); cartaDeAtaque(this);">
+
+                    </div>
+                    <div class="col-2 col-md-1 fila" id="pmo3" data-id="pmo3" data-position="3"
+                        data-categoria="monstruo" data-status="vacio"
+                        onclick="ponerCartaPlayer(this); cartaDeAtaque(this);">
+
+                    </div>
+                    <div class="col-2 col-md-1 fila" id="pmo4" data-id="pmo4" data-position="4"
+                        data-categoria="monstruo" data-status="vacio"
+                        onclick="ponerCartaPlayer(this); cartaDeAtaque(this);">
+
+                    </div>
+                    <div class="col-2 col-md-1 fila" id="pmo5" data-id="pmo5" data-position="5"
+                        data-categoria="monstruo" data-status="vacio"
+                        onclick="ponerCartaPlayer(this); cartaDeAtaque(this);">
+
+                    </div> -->
+
+                    <div class="col-2 col-md-1 fila" id="pmo1" data-id="pmo1" data-position="1"
+                        data-categoria="monstruo" data-status="vacio-monstruo">
+
+                    </div>
+                    <div class="col-2 col-md-1 fila" id="pmo2" data-id="pmo2" data-position="2"
+                        data-categoria="monstruo" data-status="vacio-monstruo">
+
+                    </div>
+                    <div class="col-2 col-md-1 fila" id="pmo3" data-id="pmo3" data-position="3"
+                        data-categoria="monstruo" data-status="vacio-monstruo">
+
+                    </div>
+                    <div class="col-2 col-md-1 fila" id="pmo4" data-id="pmo4" data-position="4"
+                        data-categoria="monstruo" data-status="vacio-monstruo">
+
+                    </div>
+                    <div class="col-2 col-md-1 fila" id="pmo5" data-id="pmo5" data-position="5"
+                        data-categoria="monstruo" data-status="vacio-monstruo">
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- PLAYER HECHIZOS Y TRAMPA  -->
+            <div id="tableroMagicasPlayer" class="container">
+                <div class="row d-flex justify-content-center">
+
+                    <div class="col-2 col-md-1 fila" id="pma1" data-id="pma1" data-position="1" data-categoria="magicas"
+                        data-status="vacio" onclick="ponerCartaPlayer(this)">
+                    </div>
+                    <div class="col-2 col-md-1 fila" id="pma2" data-id="pma2" data-position="2" data-categoria="magicas"
+                        data-status="vacio" onclick="ponerCartaPlayer(this)">
+
+                    </div>
+                    <div class="col-2 col-md-1 fila" id="pma3" data-id="pma3" data-position="3" data-categoria="magicas"
+                        data-status="vacio" onclick="ponerCartaPlayer(this)">
+
+                    </div>
+                    <div class="col-2 col-md-1 fila" id="pma4" data-id="pma4" data-position="4" data-categoria="magicas"
+                        data-status="vacio" onclick="ponerCartaPlayer(this)">
+
+                    </div>
+                    <div class="col-2 col-md-1 fila" id="pma5" data-id="pma5" data-position="5" data-categoria="magicas"
+                        data-status="vacio" onclick="ponerCartaPlayer(this)">
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- FIN TABLERO -->
+        <div id="cartasManoPlayer" class="container">
+            <div class="row d-flex justify-content-center">
+
+                <div class="col-2 col-md-1 fila">
+                    <img src="img/mazo.jpg" id="cp1" data-status="lleno" class="cartasacada" draggable="true">
+                </div>
+                <div class="col-2 col-md-1 fila">
+                    <img src="img/mazo.jpg" id="cp2" data-status="lleno" class="cartasacada" draggable="true">
+                </div>
+                <div class="col-2 col-md-1 fila">
+                    <img src="img/mazo.jpg" id="cp3" data-status="lleno" class="cartasacada" draggable="true">
+                </div>
+                <div class="col-2 col-md-1 fila">
+                    <img src="img/mazo.jpg" id="cp4" data-status="lleno" class="cartasacada" draggable="true">
+                </div>
+                <div class="col-2 col-md-1 fila">
+                    <img src="img/mazo.jpg" id="cp5" data-status="lleno" class="cartasacada" draggable="true">
+                </div>
+
+                <div class="col-2 col-md-1 fila oculto">
+                    <img src="img/mazo.jpg" id="cp6" data-status="vacio" class="cartasacada" draggable="true">
+                </div>
+                <div class="col-2 col-md-1 fila oculto">
+                    <img src="img/mazo.jpg" id="cp7" data-status="vacio" class="cartasacada" draggable="true">
+                </div>
+
+
+                <div class="col-2 col-md-1 fila">
+                    <img src="img/mazo.png" id="mazoPlayer">
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+
+</body>
+
+</html>
