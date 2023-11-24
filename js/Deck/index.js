@@ -167,7 +167,6 @@ class Deck {
 		// Agregar la imagen al área de caída
 		dropArea.appendChild(imgElement);
 
-
 		// reset de la mano
 		const hand = document.getElementById('cartasManoPlayer');
 
@@ -395,6 +394,7 @@ class Deck {
 
 		// Colocar carta en mano
 		this.drawPhaseComputer(player);
+		this.updateTotalDeckCount(player);
 		this.mainPhaseComputer(player);
 
 		this.hasDrawnCard = {
@@ -436,7 +436,7 @@ class Deck {
 			emptyHandSlot.dataset.id = 'lleno';
 		} else {
 			alert(
-				`¡El jugador ${player} ya tiene 7 cartas en la mano! Entrando a la Main Phase.`
+				`¡El jugador ${player} ya tiene 7 cartas en la mano! Se descarto la carta obtenida.`
 			);
 		}
 
@@ -480,7 +480,7 @@ class Deck {
 			this.currentPhase === 'draw' &&
 			!this.hasDrawnCard.player
 		) {
-			this.currentPhase === 'draw'
+			this.currentPhase === 'draw';
 			this.hasDrawnCard = {
 				...this.hasDrawnCard,
 				player: false,
@@ -488,15 +488,15 @@ class Deck {
 
 			// Devuelve temprano si ya tiene 7 cartas
 			if (this.checkHandFull('player')) {
-				alert('Ya tienes 7 cartas, cambiando de fase.');
 				this.currentPhase = 'main';
+				this.updateTotalDeckCount('player');
 				this.mainPhase('player');
 				return;
 			}
 
-
 			this.drawCard('player');
 			this.currentPhase = 'main';
+			this.updateTotalDeckCount('player');
 			this.mainPhase('player');
 			// Desactiva el evento de clic después de usarlo
 			this.drawClickEventAdded = false;
@@ -511,7 +511,7 @@ class Deck {
 		const fullSlots = hand.querySelectorAll('[data-status="lleno"]');
 		if (fullSlots.length === 7) {
 			alert(
-				`¡El jugador ${player} ya tiene 7 cartas en la mano! Entrando a la Main Phase.`
+				`¡El jugador ${player} ya tiene 7 cartas en la mano! Se descarto la carta obtenida.`
 			);
 			return true;
 		}
@@ -519,6 +519,8 @@ class Deck {
 	};
 
 	atkPhase = () => {
+		this.currentPhase = 'battle';
+
 		if (this.turnCount === 1 && this.currentPlayer === 1) {
 			alert('No puedes atacar en el primer turno.');
 			return;
@@ -587,7 +589,7 @@ class Deck {
 				this.endPhaseButton.style.backgroundColor = 'gray';
 
 				// self.endPhase();
-			}, 2000); // Simula un retraso de 2 segundos antes de que Yugi finalice su turno
+			}, 1000); // Simula un retraso de 2 segundos antes de que Yugi finalice su turno
 		}
 
 		// Limpiar turno de jugadores
@@ -600,6 +602,24 @@ class Deck {
 	endPhase = () => {
 		this.currentPhase = 'draw';
 		this.changeTurn();
+	};
+
+	getTotalDeckCount = (player) => {
+		// Lógica para obtener el total de cartas en el mazo del jugador
+		return this.decks[player].length;
+	};
+
+	// Función para actualizar el total del deck del jugador en el elemento HTML
+	updateTotalDeckCount = (player) => {
+		const totalDeckElement = document.getElementById(
+			`totalDeck${player.charAt(0).toUpperCase()}${player.slice(1)}`
+		);
+
+		if (totalDeckElement) {
+			const totalDeckCount = this.getTotalDeckCount(player);
+			totalDeckElement.innerHTML = `<h5>${totalDeckCount}</h5>`;
+			totalDeckElement.classList.add('text-white');
+		}
 	};
 
 	showDecks = () => {
