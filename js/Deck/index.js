@@ -31,6 +31,15 @@ class Deck {
 
 		this.drawClickEventAdded = false;
 
+		this.selectedMonstersCount = 0;
+		this.selectedPlayerMonster = null;
+		this.selectedRivalMonster = null;
+		this.monstersThatAttacked = [];
+
+		this.damage = 0;
+		this.lpYugi = 8000;
+		this.lpPlayer = 8000;
+
 		this.addEndPhaseClickHandler();
 		this.addAtkPhaseClickHandler();
 		this.addDragAndDropHandlers();
@@ -68,8 +77,6 @@ class Deck {
 			this.atkPhase();
 		});
 	};
-
-	// DRAG AND DROP
 
 	dragStart = (event) => {
 		if (this.currentPhase !== 'main') {
@@ -110,18 +117,12 @@ class Deck {
 		let player = this.currentPlayer === 1 ? 'player' : 'yugi';
 
 		if (!this.hasPlacedCard[player]) {
-			console.log('estoy aqui');
 			alert(`Ya has colocado una carta en este turno.`);
 			return;
 		}
 
 		if (dropArea.querySelector('img')) {
 			alert('Ya hay una carta en esta área. Elige otro lugar.');
-			return;
-		}
-
-		if (dropArea.dataset.status !== 'vacio-monstruo') {
-			alert('Solo puedes colocar cartas de monstruo en esta área.');
 			return;
 		}
 
@@ -133,39 +134,81 @@ class Deck {
 			return;
 		}
 
+		const draggedElement = document.querySelector(
+			'.cartasacada[draggable="true"]:hover'
+		);
+		const nameAttribute = draggedElement.getAttribute('data-name');
+		const idCard = draggedElement.getAttribute('data-id_carta');
+		imageData.name = nameAttribute;
+		imageData.id_carta = idCard;
+
 		const canvas = event.target;
 		canvas.classList.add('oculto');
 
 		// Crear un nuevo elemento de imagen y mostrar la imagen en el área de caída
 		const imgElement = document.createElement('img');
 		imgElement.src = imageData.src;
+		imgElement.dataset.name = imageData.name;
 		imgElement.draggable = false;
 		imgElement.dataset.tipo = imageData.tipo;
+		imgElement.dataset.id = imageData.id_carta;
 		imgElement.dataset.ataque = imageData.ataque;
 		imgElement.dataset.defensa = imageData.defensa;
-		imgElement.dataset.id = imageData.id;
 
 		// Preguntar al usuario si quiere colocar la carta en posición de ataque o defensa
 		const isAttackPosition = window.confirm(
 			'¿Deseas colocar la carta en posición de ataque?'
 		);
 
+		let ataque = null;
+		let defensa = null;
+
+		let ataqueElement = document.getElementById(
+			`ataque-campo-${imageData.id_carta}`
+		);
+
+		let defensaElement = document.getElementById(
+			`defense-campo-${imageData.id_carta}`
+		);
+
+		// Elimina los elementos p existentes si hay alguno
+		if (ataqueElement) {
+			ataqueElement.remove();
+		}
+
+		if (defensaElement) {
+			defensaElement.remove();
+		}
+
 		if (!isAttackPosition) {
 			// Si no es posición de ataque, cambiar el estilo y agregar el atributo de defensa
 			imgElement.style.transform = 'rotate(90deg)';
 			imgElement.dataset.position = 'defensa';
+
+			defensa = document.createElement('p');
+			defensa.setAttribute('id', `defense-campo-${imageData.id_carta}`);
+			defensa.textContent = `${imageData.defensa}`;
+			defensa.style.color = 'red';
 		} else {
 			imgElement.dataset.position = 'ataque';
+
+			ataque = document.createElement('p');
+			ataque.setAttribute('id', `ataque-campo-${imageData.id_carta}`);
+			ataque.textContent = `${imageData.ataque}`;
+			ataque.style.color = 'green';
 		}
 
-		// Agregar el evento onclick a la imagen
-		// imgElement.addEventListener('click', () => {
-		//     // Lógica al hacer clic en la imagen, por ejemplo, mostrar información
-		//     console.log('Clic en la imagen:', imageData);
-		// });
-
 		// Agregar la imagen al área de caída
+		dropArea.dataset.status = 'lleno-monstruo';
 		dropArea.appendChild(imgElement);
+
+		if (ataque) {
+			dropArea.appendChild(ataque);
+		}
+
+		if (defensa) {
+			dropArea.appendChild(defensa);
+		}
 
 		// reset de la mano
 		const hand = document.getElementById('cartasManoPlayer');
@@ -178,6 +221,7 @@ class Deck {
 			handCard.dataset.tipo = '';
 			handCard.dataset.ataque = '';
 			handCard.dataset.defensa = '';
+			handCard.dataset.name = '';
 			handCard.dataset.img = '';
 			handCard.draggable = true;
 
@@ -210,8 +254,6 @@ class Deck {
 		});
 	};
 
-	// FIN DRAG AND DROP
-
 	assembleDecks = () => {
 		const size = this.cards.length;
 		const validatorDeck = new Set();
@@ -243,13 +285,29 @@ class Deck {
 		for (let i = 0; i < positions.length; i++) {
 			let position = positions[i];
 			let itemCard = document.getElementById(position);
+
 			let card = playerCards[i];
 
+			if (player === 'player') {
+				let defensa = document.createElement('p');
+				defensa.textContent = `${card.defense}`;
+				defensa.style.color = 'gray';
+
+				let ataque = document.createElement('p');
+				ataque.textContent = `${card.attack}`;
+				ataque.style.color = 'green';
+
+				itemCard.insertAdjacentElement('afterend', defensa);
+				itemCard.insertAdjacentElement('afterend', ataque);
+			}
+
 			itemCard.src = player === 'yugi' ? './img/mazo.jpg' : card.imageUrl;
+			itemCard.dataset.name = card.name;
 			itemCard.dataset.img = card.imageUrl;
 			itemCard.dataset.tipo = card.type;
 			itemCard.dataset.ataque = card.attack;
 			itemCard.dataset.defensa = card.defense;
+			itemCard.dataset.id_carta = card.id;
 
 			if (player === 'player') {
 				itemCard.dataset.id = position;
@@ -298,10 +356,12 @@ class Deck {
 		if (emptyHandSlot) {
 			// Colocar la carta en la mano
 			emptyHandSlot.src = '/img/mazo.jpg';
+			emptyHandSlot.dataset.name = card.name;
 			emptyHandSlot.dataset.img = card.imageUrl;
 			emptyHandSlot.dataset.tipo = card.type;
 			emptyHandSlot.dataset.ataque = card.attack;
 			emptyHandSlot.dataset.defensa = card.defense;
+			emptyHandSlot.dataset.id_carta = card.id;
 			emptyHandSlot.dataset.status = 'lleno';
 			emptyHandSlot.dataset.id = emptyHandSlot.id;
 		} else {
@@ -323,9 +383,11 @@ class Deck {
 			);
 			return;
 		}
+
 		const randomHandCardIndex = Math.floor(
 			Math.random() * availableHandCards.length
 		);
+
 		const randomHandCard = availableHandCards[randomHandCardIndex];
 		// Obtener el área de monstruos en el campo
 		const monsterField = document.getElementById('campoAtaqueYugi');
@@ -333,6 +395,7 @@ class Deck {
 		const availableMonsterArea = monsterField.querySelector(
 			`.fila[data-status="vacio-monstruo-yugi"]`
 		);
+
 		// Modificar esto, si no hay monstruo, atacar en vez de terminar
 		if (!availableMonsterArea) {
 			alert(`No hay áreas de monstruo disponibles para jugar la carta.`);
@@ -348,31 +411,69 @@ class Deck {
 				availableMonsterArea.dataset.status = 'lleno-monstruo-yugi';
 			}
 		}
+
 		const imageData = {
 			src: randomHandCard.dataset.img,
+			name: randomHandCard.dataset.name,
 			tipo: randomHandCard.dataset.tipo,
 			ataque: randomHandCard.dataset.ataque,
 			defensa: randomHandCard.dataset.defensa,
-			id: randomHandCard.dataset.id,
+			id: randomHandCard.dataset.id_carta,
 		};
-		console.log(imageData);
+
 		const imgElement = document.createElement('img');
 		imgElement.src = imageData.src;
-		imgElement.draggable = false;
+		imgElement.dataset.name = imageData.name;
 		imgElement.dataset.tipo = imageData.tipo;
 		imgElement.dataset.ataque = imageData.ataque;
 		imgElement.dataset.defensa = imageData.defensa;
 		imgElement.dataset.id = imageData.id;
+		imgElement.draggable = false;
+
+		let ataqueElement = document.getElementById(`ataque-${imageData.id}`);
+		let defensaElement = document.getElementById(`defense-${imageData.id}`);
+
+		if (ataqueElement) {
+			ataqueElement.remove();
+		}
+
+		if (defensaElement) {
+			defensaElement.remove();
+		}
+
+		let ataque = null
+		let defensa = null
+
 		const isAttackPosition = Math.random() < 0.5;
+
 		if (!isAttackPosition) {
 			// Si no es posición de ataque, cambiar el estilo y agregar el atributo de defensa
 			imgElement.style.transform = 'rotate(90deg)';
 			imgElement.dataset.position = 'defensa';
+
+			defensa = document.createElement('p');
+			defensa.setAttribute('id', `defense-${imageData.id}`);
+			defensa.textContent = `${imageData.defensa}`;
+			defensa.style.color = 'red';
 		} else {
 			imgElement.dataset.position = 'ataque';
+
+			ataque = document.createElement('p');
+			ataque.setAttribute("id", `ataque-${imageData.id}`);
+			ataque.textContent = `${imageData.ataque}`;
+			ataque.style.color = 'green';
 		}
 		// Agregar la imagen al área de monstruos
 		availableMonsterArea.appendChild(imgElement);
+
+		if (ataque) {
+			availableMonsterArea.appendChild(ataque);
+		  }
+		  
+		  if (defensa) {
+			availableMonsterArea.appendChild(defensa);
+		  }
+
 		// Limpiar la carta de la mano
 		randomHandCard.src = 'img/mazo.jpg';
 		randomHandCard.dataset.status = 'vacio';
@@ -380,13 +481,14 @@ class Deck {
 		randomHandCard.dataset.ataque = '';
 		randomHandCard.dataset.defensa = '';
 		randomHandCard.dataset.img = '';
+		randomHandCard.dataset.id_carta = '';
 		randomHandCard.draggable = false;
 		const divContainer2 = randomHandCard.closest('.fila');
 		divContainer2.classList.add('oculto');
 		divContainer2.classList.remove('mostrar');
 		this.hasPlacedCard[player] = false;
 		this.currentPhase = 'draw';
-		console.log(`Yugi jugó la carta aleatoria desde la mano:`, imageData);
+		// console.log(`Yugi jugó la carta aleatoria desde la mano:`, imageData);
 	};
 
 	playComputer = () => {
@@ -427,13 +529,43 @@ class Deck {
 		}
 
 		if (emptyHandSlot) {
+			let defenseElement = document.getElementById(
+				`defense-${emptyHandSlot.id}`
+			);
+			let attackElement = document.getElementById(
+				`ataque-${emptyHandSlot.id}`
+			);
+
+			if (defenseElement) {
+				defenseElement.remove();
+			}
+
+			if (attackElement) {
+				attackElement.remove();
+			}
+
 			emptyHandSlot.src = card.imageUrl;
+			emptyHandSlot.dataset.name = card.name;
 			emptyHandSlot.dataset.img = card.imageUrl;
 			emptyHandSlot.dataset.tipo = card.type;
 			emptyHandSlot.dataset.ataque = card.attack;
 			emptyHandSlot.dataset.defensa = card.defense;
-			emptyHandSlot.dataset.status = emptyHandSlot.id;
-			emptyHandSlot.dataset.id = 'lleno';
+			emptyHandSlot.dataset.id_carta = card.id;
+			emptyHandSlot.dataset.status = 'lleno';
+			emptyHandSlot.dataset.id = emptyHandSlot.id;
+
+			let defensa = document.createElement('p');
+			defensa.setAttribute('id', `defense-${emptyHandSlot.id}`);
+			defensa.textContent = `${card.defense}`;
+			defensa.style.color = 'gray';
+
+			let ataque = document.createElement('p');
+			ataque.setAttribute('id', `ataque-${emptyHandSlot.id}`);
+			ataque.textContent = `${card.attack}`;
+			ataque.style.color = 'green';
+
+			emptyHandSlot.insertAdjacentElement('afterend', defensa);
+			emptyHandSlot.insertAdjacentElement('afterend', ataque);
 		} else {
 			alert(
 				`¡El jugador ${player} ya tiene 7 cartas en la mano! Se descarto la carta obtenida.`
@@ -442,7 +574,7 @@ class Deck {
 
 		this.hasDrawnCard[player] = true;
 
-		console.log(`Carta robada por ${player}:`, card);
+		// console.log(`Carta robada por ${player}:`, card);
 	};
 
 	drawPhase = (player) => {
@@ -519,18 +651,249 @@ class Deck {
 	};
 
 	atkPhase = () => {
-		this.currentPhase = 'battle';
-
 		if (this.turnCount === 1 && this.currentPlayer === 1) {
 			alert('No puedes atacar en el primer turno.');
 			return;
 		}
 
+		this.currentPhase = 'battle';
 		this.mainPhaseButton.disabled = true;
 		this.mainPhaseButton.style.backgroundColor = 'gray';
 		this.battlePhaseButton.style.backgroundColor = 'green';
 
 		alert(`Atk Phase`);
+
+		this.addClickEventToPlayerMonsters();
+		this.addClickEventToRivalMonsters();
+	};
+
+	addClickEventToPlayerMonsters = () => {
+		const playerMonsters = document.querySelectorAll(
+			'[data-status="lleno-monstruo"]'
+		);
+
+		if (playerMonsters.length === 0) {
+			alert('No tienes monstruos para atacar');
+			return;
+		}
+
+		if (this.selectedPlayerMonster !== null) {
+			alert(
+				'Ya has seleccionado un monstruo, selecciona un monstruo de yugi o ataca directamente.'
+			);
+			return;
+		}
+
+		playerMonsters.forEach((monster) => {
+			const img = monster.querySelector('img');
+
+			img.addEventListener('click', () => {
+				const monsterId = img.dataset.id;
+
+				// Almacena la información del monstruo seleccionado en un objeto
+				if (this.monstersThatAttacked.includes(monsterId)) {
+					alert(
+						'Este monstruo ya ha atacado en este turno. Selecciona otro monstruo o ataca directamente.'
+					);
+					return;
+				}
+
+				if (this.selectedPlayerMonster !== null) {
+					alert(
+						'Ya has seleccionado un monstruo, selecciona un monstruo de yugi o ataca directamente.'
+					);
+					return;
+				}
+
+				if (img.dataset.position === 'defensa') {
+					alert(
+						'No puedes atacar con un monstruo en posición de defensa.'
+					);
+					return;
+				}
+
+				this.selectedPlayerMonster = {
+					name: img.dataset.name,
+					tipo: img.dataset.tipo,
+					ataque: img.dataset.ataque,
+					defensa: img.dataset.defensa,
+					id: img.dataset.id,
+					position: img.dataset.position,
+				};
+
+				console.log(this.selectedPlayerMonster);
+
+				alert(
+					`Monstruo del jugador seleccionado: ${this.selectedPlayerMonster.name}`
+				);
+
+				this.selectedMonstersCount++;
+
+				this.monstersThatAttacked.push(monsterId);
+
+				// Verifica si ambos monstruos están seleccionados
+				if (this.selectedMonstersCount === 2) {
+					this.attackPhasePlayer();
+				}
+			});
+		});
+	};
+
+	addClickEventToRivalMonsters = () => {
+		const rivalMonsters = document.querySelectorAll(
+			'[data-status="lleno-monstruo-yugi"]'
+		);
+
+		if (rivalMonsters.length === 0) {
+			alert(
+				'Yugi no tiene monstruos para atacar, puedes atacar directo a sus LP'
+			);
+			return;
+		}
+
+		if (this.selectedRivalMonster !== null) {
+			alert(
+				'Ya has seleccionado un monstruo. No puedes seleccionar otro.'
+			);
+			return;
+		}
+
+		rivalMonsters.forEach((monster) => {
+			const img = monster.querySelector('img');
+
+			img.addEventListener('click', () => {
+				if (this.selectedRivalMonster !== null) {
+					alert(
+						'Ya has seleccionado un monstruo. No puedes seleccionar otro.'
+					);
+					return;
+				}
+
+				// Almacena la información del monstruo seleccionado en un objeto
+				this.selectedRivalMonster = {
+					name: img.dataset.name,
+					tipo: img.dataset.tipo,
+					ataque: img.dataset.ataque,
+					defensa: img.dataset.defensa,
+					id: img.dataset.id,
+					position: img.dataset.position,
+				};
+
+				alert(
+					`Monstruo de yugi seleccionado: ${this.selectedRivalMonster.name}`
+				);
+
+				this.selectedMonstersCount++;
+
+				// Verifica si ambos monstruos están seleccionados
+				if (this.selectedMonstersCount === 2) {
+					this.attackPhasePlayer();
+				}
+			});
+		});
+	};
+
+	attackPhasePlayer = () => {
+		// Verifica que se hayan seleccionado ambos monstruos
+		if (!this.selectedPlayerMonster || !this.selectedRivalMonster) {
+			alert('Debes seleccionar ambos monstruos antes de atacar.');
+			return;
+		}
+
+		// Verifica que el monstruo del jugador esté en posición de ataque
+		if (this.selectedPlayerMonster.position !== 'ataque') {
+			alert(
+				'El monstruo del jugador debe estar en posición de ataque para atacar.'
+			);
+			return;
+		}
+
+		// Verifica la posición del monstruo rival y realiza el cálculo del ataque
+		const data = this.calculateAttackResult(
+			this.selectedPlayerMonster,
+			this.selectedRivalMonster
+		);
+
+		console.log(data);
+		console.log(this.lpYugi);
+		console.log(this.lpPlayer);
+
+		// Actualiza los LP del rival según el resultado del ataque
+		// if (damage.success) {
+		// 	this.lpYugi -= damage.damage;
+		// 	alert(
+		// 		`¡Ataque exitoso! Yugi pierde ${damage.damage} LP. LP actual de Yugi: ${this.lpYugi}`
+		// 	);
+		// } else {
+		// 	alert(`El ataque no tuvo éxito. LP actual de Yugi: ${this.lpYugi}`);
+		// }
+
+		// Reinicia las variables de monstruos seleccionados
+		this.damage = 0;
+		this.selectedMonstersCount = 0;
+		this.selectedPlayerMonster = null;
+		this.selectedRivalMonster = null;
+	};
+
+	calculateAttackResult = (attacker, defender) => {
+		const attackerAttack = parseInt(attacker.ataque);
+		const defenderAttack = parseInt(defender.ataque);
+		const defenderDefense = parseInt(defender.defensa);
+
+		switch (true) {
+			case attackerAttack > defenderDefense &&
+				defender.position === 'defensa':
+				// Caso 1: El ataque de selectedPlayerMonster es mayor que la defensa de selectedRivalMonster en posición de defensa
+				// Agregar lógica aquí para destruir el monstruo rival en posición de defensa (si es necesario)
+				console.log('Carta de yugi, position defense, destroy');
+				break;
+
+			case attackerAttack > defenderAttack &&
+				defender.position === 'ataque':
+				// Caso 2: El ataque de selectedPlayerMonster es mayor que el ataque de selectedRivalMonster en posición de ataque
+				this.damage = attackerAttack - defenderAttack;
+				this.lpYugi -= this.damage; // Restar la diferencia al LP de Yugi
+				return {
+					success: true,
+					message: 'Se vencio al monstruo de yugi',
+				};
+
+			case attackerAttack < defenderAttack &&
+				defender.position === 'ataque':
+				// Caso 3: El ataque de selectedPlayerMonster es menor que el ataque de selectedRivalMonster en posición de ataque
+				this.damage = defenderAttack - attackerAttack;
+				this.lpPlayer -= this.damage; // Restar la diferencia al LP de Player
+				return {
+					success: false,
+					message:
+						'El ataque de Player es menor que el ataque de Yugi',
+				};
+
+			case attackerAttack === defenderAttack:
+				// Caso 4: El ataque de selectedPlayerMonster es igual al ataque de selectedRivalMonster
+				// Agregar lógica aquí para destruir ambos monstruos (si es necesario)
+				break;
+
+			case attackerAttack === defenderDefense:
+				// Caso 5: El ataque de selectedPlayerMonster es igual a la defensa de selectedRivalMonster
+				// Agregar lógica aquí para manejar el caso en que no ocurre daño
+				return { success: false };
+
+			case attackerAttack < defenderDefense &&
+				defender.position === 'defensa':
+				// Caso 6: El ataque de selectedPlayerMonster es menor que la defensa de selectedRivalMonster en posición de defensa
+				this.damage = defenderDefense - attackerAttack;
+				this.lpPlayer -= this.damage; // Restar la diferencia al LP de Player
+				return {
+					success: false,
+					message:
+						'La defensa del monstruo atacado es mayor que el ataque',
+				};
+		}
+
+		this.damage = 0;
+
+		return { success: false };
 	};
 
 	mainPhase = (player) => {

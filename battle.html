@@ -170,50 +170,25 @@
             <!-- PLAYER ATAQUE -->
             <div id="tableroMonstruoPlayer" class="container">
                 <div class="row d-flex justify-content-center botones" id="campoAtaque">
-                    <!-- <div class="col-2 col-md-1 fila" id="pmo1" data-id="pmo1" data-position="1"
-                        data-categoria="monstruo" data-status="vacio"
-                        onclick="ponerCartaPlayer(this); cartaDeAtaque(this);">
-
-                    </div>
-                    <div class="col-2 col-md-1 fila" id="pmo2" data-id="pmo2" data-position="2"
-                        data-categoria="monstruo" data-status="vacio"
-                        onclick="ponerCartaPlayer(this); cartaDeAtaque(this);">
-
-                    </div>
-                    <div class="col-2 col-md-1 fila" id="pmo3" data-id="pmo3" data-position="3"
-                        data-categoria="monstruo" data-status="vacio"
-                        onclick="ponerCartaPlayer(this); cartaDeAtaque(this);">
-
-                    </div>
-                    <div class="col-2 col-md-1 fila" id="pmo4" data-id="pmo4" data-position="4"
-                        data-categoria="monstruo" data-status="vacio"
-                        onclick="ponerCartaPlayer(this); cartaDeAtaque(this);">
-
-                    </div>
-                    <div class="col-2 col-md-1 fila" id="pmo5" data-id="pmo5" data-position="5"
-                        data-categoria="monstruo" data-status="vacio"
-                        onclick="ponerCartaPlayer(this); cartaDeAtaque(this);">
-
-                    </div> -->
 
                     <div class="col-2 col-md-1 fila" id="pmo1" data-id="pmo1" data-position="1"
-                        data-categoria="monstruo" data-status="vacio-monstruo">
+                        data-categoria="monstruo-player" data-status="vacio-monstruo">
 
                     </div>
                     <div class="col-2 col-md-1 fila" id="pmo2" data-id="pmo2" data-position="2"
-                        data-categoria="monstruo" data-status="vacio-monstruo">
+                        data-categoria="monstruo-player" data-status="vacio-monstruo">
 
                     </div>
                     <div class="col-2 col-md-1 fila" id="pmo3" data-id="pmo3" data-position="3"
-                        data-categoria="monstruo" data-status="vacio-monstruo">
+                        data-categoria="monstruo-player" data-status="vacio-monstruo">
 
                     </div>
                     <div class="col-2 col-md-1 fila" id="pmo4" data-id="pmo4" data-position="4"
-                        data-categoria="monstruo" data-status="vacio-monstruo">
+                        data-categoria="monstruo-player" data-status="vacio-monstruo">
 
                     </div>
                     <div class="col-2 col-md-1 fila" id="pmo5" data-id="pmo5" data-position="5"
-                        data-categoria="monstruo" data-status="vacio-monstruo">
+                        data-categoria="monstruo-player" data-status="vacio-monstruo">
 
                     </div>
                 </div>
@@ -224,22 +199,22 @@
                 <div class="row d-flex justify-content-center">
 
                     <div class="col-2 col-md-1 fila" id="pma1" data-id="pma1" data-position="1" data-categoria="magicas"
-                        data-status="vacio" onclick="ponerCartaPlayer(this)">
+                        data-status="vacio" >
                     </div>
                     <div class="col-2 col-md-1 fila" id="pma2" data-id="pma2" data-position="2" data-categoria="magicas"
-                        data-status="vacio" onclick="ponerCartaPlayer(this)">
+                        data-status="vacio" >
 
                     </div>
                     <div class="col-2 col-md-1 fila" id="pma3" data-id="pma3" data-position="3" data-categoria="magicas"
-                        data-status="vacio" onclick="ponerCartaPlayer(this)">
+                        data-status="vacio" >
 
                     </div>
                     <div class="col-2 col-md-1 fila" id="pma4" data-id="pma4" data-position="4" data-categoria="magicas"
-                        data-status="vacio" onclick="ponerCartaPlayer(this)">
+                        data-status="vacio" >
 
                     </div>
                     <div class="col-2 col-md-1 fila" id="pma5" data-id="pma5" data-position="5" data-categoria="magicas"
-                        data-status="vacio" onclick="ponerCartaPlayer(this)">
+                        data-status="vacio" >
 
                     </div>
 
@@ -272,10 +247,11 @@
                 </div>
                 <div class="col-2 col-md-1 fila oculto">
                     <img src="img/mazo.jpg" id="cp7" data-status="vacio" class="cartasacada" draggable="true">
+
                 </div>
 
 
-                <div class="col-2 col-md-1 d-flex flex-column text-center fila">
+                <div class="col-2 col-md-1 d-flex flex-column text-center fila" draggable="false">
                     <img src="img/mazo.png" id="mazoPlayer" class="mb-2">
 
                     <div id="totalDeckPlayer">
