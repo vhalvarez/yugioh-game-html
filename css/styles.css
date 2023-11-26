@@ -91,6 +91,11 @@ img {
 	z-index: 100;
 }
 
+.lp-progress {
+    width: 70%;
+    transition: value 1s ease; /* Puedes ajustar la duración y la función de temporización según tus preferencias */
+}
+
 /* .vida{
 	-webkit-appearance: none;
 	-moz-appearance: none;

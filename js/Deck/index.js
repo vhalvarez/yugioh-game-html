@@ -34,15 +34,17 @@ class Deck {
 		this.selectedMonstersCount = 0;
 		this.selectedPlayerMonster = null;
 		this.selectedRivalMonster = null;
-		this.monstersThatAttacked = [];
+		this.monstersAttackedStatus = {};
 
 		this.damage = 0;
+
 		this.lpYugi = 8000;
 		this.lpPlayer = 8000;
 
 		this.addEndPhaseClickHandler();
 		this.addAtkPhaseClickHandler();
 		this.addDragAndDropHandlers();
+		this.updateProgressBars();
 	}
 
 	getRandomCards = async () => {
@@ -65,11 +67,9 @@ class Deck {
 	};
 
 	addEndPhaseClickHandler = () => {
-		document
-			.getElementById('endPhaseButton')
-			.addEventListener('click', () => {
-				this.endPhase();
-			});
+		this.endPhaseButton.addEventListener('click', () => {
+			this.endPhase();
+		});
 	};
 
 	addAtkPhaseClickHandler = () => {
@@ -288,12 +288,29 @@ class Deck {
 
 			let card = playerCards[i];
 
+			let ataque = null;
+			let defensa = null;
+
+			let ataqueElement = document.getElementById(`ataque-${card.id}`);
+
+			let defensaElement = document.getElementById(`defense-${card.id}`);
+
+			if (ataqueElement) {
+				ataqueElement.remove();
+			}
+
+			if (defensaElement) {
+				defensaElement.remove();
+			}
+
 			if (player === 'player') {
-				let defensa = document.createElement('p');
+				defensa = document.createElement('p');
+				defensa.setAttribute('id', `defense-${position}`);
 				defensa.textContent = `${card.defense}`;
 				defensa.style.color = 'gray';
 
-				let ataque = document.createElement('p');
+				ataque = document.createElement('p');
+				ataque.setAttribute('id', `ataque-${position}`);
 				ataque.textContent = `${card.attack}`;
 				ataque.style.color = 'green';
 
@@ -441,8 +458,8 @@ class Deck {
 			defensaElement.remove();
 		}
 
-		let ataque = null
-		let defensa = null
+		let ataque = null;
+		let defensa = null;
 
 		const isAttackPosition = Math.random() < 0.5;
 
@@ -459,7 +476,7 @@ class Deck {
 			imgElement.dataset.position = 'ataque';
 
 			ataque = document.createElement('p');
-			ataque.setAttribute("id", `ataque-${imageData.id}`);
+			ataque.setAttribute('id', `ataque-${imageData.id}`);
 			ataque.textContent = `${imageData.ataque}`;
 			ataque.style.color = 'green';
 		}
@@ -468,11 +485,11 @@ class Deck {
 
 		if (ataque) {
 			availableMonsterArea.appendChild(ataque);
-		  }
-		  
-		  if (defensa) {
+		}
+
+		if (defensa) {
 			availableMonsterArea.appendChild(defensa);
-		  }
+		}
 
 		// Limpiar la carta de la mano
 		randomHandCard.src = 'img/mazo.jpg';
@@ -651,10 +668,10 @@ class Deck {
 	};
 
 	atkPhase = () => {
-		if (this.turnCount === 1 && this.currentPlayer === 1) {
-			alert('No puedes atacar en el primer turno.');
-			return;
-		}
+		// if (this.turnCount === 1 && this.currentPlayer === 1) {
+		// 	alert('No puedes atacar en el primer turno.');
+		// 	return;
+		// }
 
 		this.currentPhase = 'battle';
 		this.mainPhaseButton.disabled = true;
@@ -679,7 +696,7 @@ class Deck {
 
 		if (this.selectedPlayerMonster !== null) {
 			alert(
-				'Ya has seleccionado un monstruo, selecciona un monstruo de yugi o ataca directamente.'
+				'Ya has seleccionado un monstruo, selecciona un monstruo de yugi.'
 			);
 			return;
 		}
@@ -690,24 +707,17 @@ class Deck {
 			img.addEventListener('click', () => {
 				const monsterId = img.dataset.id;
 
-				// Almacena la información del monstruo seleccionado en un objeto
-				if (this.monstersThatAttacked.includes(monsterId)) {
-					alert(
-						'Este monstruo ya ha atacado en este turno. Selecciona otro monstruo o ataca directamente.'
-					);
-					return;
-				}
-
-				if (this.selectedPlayerMonster !== null) {
-					alert(
-						'Ya has seleccionado un monstruo, selecciona un monstruo de yugi o ataca directamente.'
-					);
-					return;
-				}
-
 				if (img.dataset.position === 'defensa') {
 					alert(
 						'No puedes atacar con un monstruo en posición de defensa.'
+					);
+					return;
+				}
+
+				// Almacena la información del monstruo seleccionado en un objeto
+				if (this.monstersAttackedStatus[monsterId]) {
+					alert(
+						'Este monstruo ya ha atacado en este turno. Selecciona otro monstruo o ataca directamente.'
 					);
 					return;
 				}
@@ -721,15 +731,38 @@ class Deck {
 					position: img.dataset.position,
 				};
 
-				console.log(this.selectedPlayerMonster);
-
 				alert(
 					`Monstruo del jugador seleccionado: ${this.selectedPlayerMonster.name}`
 				);
 
+				const yugiMonsters = document.querySelectorAll(
+					'[data-status="lleno-monstruo-yugi"]'
+				);
+
+				if (yugiMonsters.length === 0) {
+					const confirmAttackDirectly = confirm(
+						'Yugi no tiene monstruos en su campo. ¿Quieres atacar directamente sus puntos de vida?'
+					);
+
+					if (confirmAttackDirectly) {
+						// Aquí puedes realizar la lógica para atacar directamente los puntos de vida de Yugi
+
+						this.lpYugi -= this.selectedPlayerMonster.ataque;
+
+						// Reinicia las variables de monstruos seleccionados después del ataque
+						this.selectedPlayerMonster = null;
+						this.selectedRivalMonster = null;
+						this.selectedMonstersCount = 0;
+						this.monstersAttackedStatus[monsterId] = true;
+						this.updateProgressBars();
+
+						return;
+					}
+				}
+
 				this.selectedMonstersCount++;
 
-				this.monstersThatAttacked.push(monsterId);
+				this.monstersAttackedStatus[monsterId] = true;
 
 				// Verifica si ambos monstruos están seleccionados
 				if (this.selectedMonstersCount === 2) {
@@ -745,10 +778,7 @@ class Deck {
 		);
 
 		if (rivalMonsters.length === 0) {
-			alert(
-				'Yugi no tiene monstruos para atacar, puedes atacar directo a sus LP'
-			);
-			return;
+			alert('Yugi no tiene monstruos en su campo.');
 		}
 
 		if (this.selectedRivalMonster !== null) {
@@ -833,6 +863,7 @@ class Deck {
 		this.selectedMonstersCount = 0;
 		this.selectedPlayerMonster = null;
 		this.selectedRivalMonster = null;
+		this.updateProgressBars();
 	};
 
 	calculateAttackResult = (attacker, defender) => {
@@ -840,19 +871,73 @@ class Deck {
 		const defenderAttack = parseInt(defender.ataque);
 		const defenderDefense = parseInt(defender.defensa);
 
+		let playerMonsterYugiDivs;
+
 		switch (true) {
 			case attackerAttack > defenderDefense &&
 				defender.position === 'defensa':
 				// Caso 1: El ataque de selectedPlayerMonster es mayor que la defensa de selectedRivalMonster en posición de defensa
 				// Agregar lógica aquí para destruir el monstruo rival en posición de defensa (si es necesario)
-				console.log('Carta de yugi, position defense, destroy');
-				break;
+
+				playerMonsterYugiDivs = document.querySelectorAll(
+					`[data-status="lleno-monstruo-yugi"]`
+				);
+
+				for (const div of playerMonsterYugiDivs) {
+					const img = div.querySelector('img');
+					if (img && img.dataset.id === defender.id) {
+						const canvas = div.querySelector('canvas');
+						const p = div.querySelector('p');
+
+						div.setAttribute('data-status', 'vacio-monstruo-yugi');
+						img.remove();
+						p.remove();
+						canvas.classList.remove('oculto');
+
+						break; // Rompe el bucle si se encuentra la coincidencia
+					}
+				}
+
+				playerMonsterYugiDivs = null;
+
+				this.damage = 0;
+				this.selectedPlayerMonster = null;
+				this.selectedRivalMonster = null;
+				return {
+					success: true,
+					message: 'Se vencio al monstruo de yugi en defensa',
+				};
 
 			case attackerAttack > defenderAttack &&
 				defender.position === 'ataque':
 				// Caso 2: El ataque de selectedPlayerMonster es mayor que el ataque de selectedRivalMonster en posición de ataque
 				this.damage = attackerAttack - defenderAttack;
 				this.lpYugi -= this.damage; // Restar la diferencia al LP de Yugi
+				this.damage = 0;
+				this.selectedPlayerMonster = null;
+				this.selectedRivalMonster = null;
+
+				playerMonsterYugiDivs = document.querySelectorAll(
+					`[data-status="lleno-monstruo-yugi"]`
+				);
+
+				for (const div of playerMonsterYugiDivs) {
+					const img = div.querySelector('img');
+					if (img && img.dataset.id === defender.id) {
+						const canvas = div.querySelector('canvas');
+						const p = div.querySelector('p');
+
+						div.setAttribute('data-status', 'vacio-monstruo-yugi');
+						img.remove();
+						p.remove();
+						canvas.classList.remove('oculto');
+
+						break; // Rompe el bucle si se encuentra la coincidencia
+					}
+				}
+
+				playerMonsterYugiDivs = null;
+
 				return {
 					success: true,
 					message: 'Se vencio al monstruo de yugi',
@@ -863,6 +948,13 @@ class Deck {
 				// Caso 3: El ataque de selectedPlayerMonster es menor que el ataque de selectedRivalMonster en posición de ataque
 				this.damage = defenderAttack - attackerAttack;
 				this.lpPlayer -= this.damage; // Restar la diferencia al LP de Player
+				this.damage = 0;
+				this.selectedPlayerMonster = null;
+				this.selectedRivalMonster = null;
+
+				console.log(attacker);
+				console.log(defender);
+
 				return {
 					success: false,
 					message:
@@ -872,11 +964,28 @@ class Deck {
 			case attackerAttack === defenderAttack:
 				// Caso 4: El ataque de selectedPlayerMonster es igual al ataque de selectedRivalMonster
 				// Agregar lógica aquí para destruir ambos monstruos (si es necesario)
-				break;
+				this.damage = 0;
+				this.selectedPlayerMonster = null;
+				this.selectedRivalMonster = null;
+
+				console.log(attacker);
+				console.log(defender);
+
+				return {
+					success: true,
+					message: 'Se destruyeron ambos monstruos',
+				};
 
 			case attackerAttack === defenderDefense:
 				// Caso 5: El ataque de selectedPlayerMonster es igual a la defensa de selectedRivalMonster
 				// Agregar lógica aquí para manejar el caso en que no ocurre daño
+				this.damage = 0;
+				this.selectedPlayerMonster = null;
+				this.selectedRivalMonster = null;
+
+				console.log(attacker);
+				console.log(defender);
+
 				return { success: false };
 
 			case attackerAttack < defenderDefense &&
@@ -884,6 +993,14 @@ class Deck {
 				// Caso 6: El ataque de selectedPlayerMonster es menor que la defensa de selectedRivalMonster en posición de defensa
 				this.damage = defenderDefense - attackerAttack;
 				this.lpPlayer -= this.damage; // Restar la diferencia al LP de Player
+
+				this.damage = 0;
+				this.selectedPlayerMonster = null;
+				this.selectedRivalMonster = null;
+
+				console.log(attacker);
+				console.log(defender);
+
 				return {
 					success: false,
 					message:
@@ -892,6 +1009,8 @@ class Deck {
 		}
 
 		this.damage = 0;
+		this.selectedPlayerMonster = null;
+		this.selectedRivalMonster = null;
 
 		return { success: false };
 	};
@@ -919,7 +1038,12 @@ class Deck {
 			`Es turno del jugador ${this.currentPlayer} - Turno ${this.turnCount}`
 		);
 
-		const self = this;
+		this.monstersAttackedStatus = {};
+		this.damage = 0;
+		this.selectedMonstersCount = 0;
+		this.selectedPlayerMonster = null;
+		this.selectedRivalMonster = null;
+		this.updateProgressBars();
 
 		if (this.currentPlayer === 1) {
 			this.drawPhase('player');
@@ -983,6 +1107,22 @@ class Deck {
 			totalDeckElement.innerHTML = `<h5>${totalDeckCount}</h5>`;
 			totalDeckElement.classList.add('text-white');
 		}
+	};
+
+	updateProgressBars = () => {
+		// Actualiza la barra de progreso del jugador
+		const playerProgressBar = document.getElementById('playerProgressBar');
+		playerProgressBar.value = this.lpPlayer;
+		document.getElementById(
+			'playerLpText'
+		).textContent = `LP: ${this.lpPlayer}`;
+
+		// Actualiza la barra de progreso de Yugi
+		const yugiProgressBar = document.getElementById('yugiProgressBar');
+		yugiProgressBar.value = this.lpYugi;
+		document.getElementById(
+			'yugiLpText'
+		).textContent = `LP: ${this.lpYugi}`;
 	};
 
 	showDecks = () => {

@@ -25,7 +25,7 @@
                     <img src="img/mazo.png" id="mazoYugi">
 
                     <div id="totalDeckYugi" class="mt-2">
-                        <h5>45</h5>
+                        
                     </div>
                 </div>
                 <div class="col-2 col-md-1 fila">
@@ -91,14 +91,11 @@
                     <div class="col-12 animated fadeIn retraso-1">
                         <img src="img/yu1.png" style="width:auto; height: 100px; ">
                     </div>
-                    <div class="col-12">
-                        <b>
-                            <p style="color:white">Yugi Muto</p>
-                        </b>
-                        <progress id="vidaYugi" class="vida" value="8000" max="8000"></progress>
-                        <b>
-                            <p style="color:white" id="vidaY"></p>
-                        </b>
+                    <div class="col">
+
+                        <p id="yugiLpText">Yugi LP:</p>
+                        <progress id="yugiProgressBar" class="lp-progress" max="8000" value="8000"></progress>
+
                     </div>
                 </div>
             </div>
@@ -107,15 +104,15 @@
             <div id="tableroMonstruoYugi" class="container">
                 <div class="row d-flex justify-content-center h-10" id="campoAtaqueYugi">
                     <div class="col-2 col-md-1 fila" id="ymo1" data-id="ymo1" data-position="1"
-                        data-categoria="monstruo" data-status="vacio-monstruo-yugi" ></div>
+                        data-categoria="monstruo" data-status="vacio-monstruo-yugi"></div>
                     <div class="col-2 col-md-1 fila" id="ymo2" data-id="ymo2" data-position="2"
-                        data-categoria="monstruo" data-status="vacio-monstruo-yugi" ></div>
+                        data-categoria="monstruo" data-status="vacio-monstruo-yugi"></div>
                     <div class="col-2 col-md-1 fila" id="ymo3" data-id="ymo3" data-position="3"
-                        data-categoria="monstruo" data-status="vacio-monstruo-yugi" ></div>
+                        data-categoria="monstruo" data-status="vacio-monstruo-yugi"></div>
                     <div class="col-2 col-md-1 fila" id="ymo4" data-id="ymo4" data-position="4"
-                        data-categoria="monstruo" data-status="vacio-monstruo-yugi" ></div>
+                        data-categoria="monstruo" data-status="vacio-monstruo-yugi"></div>
                     <div class="col-2 col-md-1 fila" id="ymo5" data-id="ymo5" data-position="5"
-                        data-categoria="monstruo" data-status="vacio-monstruo-yugi" ></div>
+                        data-categoria="monstruo" data-status="vacio-monstruo-yugi"></div>
 
                 </div>
             </div>
@@ -136,7 +133,7 @@
 
 
                 <div class="animated fadeIn retraso-4 col-3 text-center">
-                    <button id="battlePhaseButton" type="button"  class="btn btn-primary">Battle
+                    <button id="battlePhaseButton" type="button" class="btn btn-primary">Battle
                         Phase</button>
                 </div>
                 <div class="animated fadeIn retraso-4 col-3 text-center">
@@ -154,16 +151,12 @@
                     <div id="username" class="col-xs-1-3 animated fadeIn retraso-1">
                         <span id="img" class="animated fadeIn retraso-1"></span>
                     </div>
-                    <div id="username" class="col-xs-2-3">
-                        <b>
-                            <p style="color:white" id="nombre"></p>
-                        </b>
-                        <progress id="vidaPlayer" class="vida" value="8000" max="8000"></progress>
-                        <b>
-                            <p style="color:white" id="vidaP"></p>
-                        </b>
-                        <!-- <script>datosPersonaje()</script> -->
+
+                    <div class="col">
+                        <p  id="playerLpText">Player LP:</p>
+                        <progress id="playerProgressBar" class="lp-progress" max="8000" value="8000"></progress>
                     </div>
+
                 </div>
             </div>
 
@@ -199,22 +192,22 @@
                 <div class="row d-flex justify-content-center">
 
                     <div class="col-2 col-md-1 fila" id="pma1" data-id="pma1" data-position="1" data-categoria="magicas"
-                        data-status="vacio" >
+                        data-status="vacio">
                     </div>
                     <div class="col-2 col-md-1 fila" id="pma2" data-id="pma2" data-position="2" data-categoria="magicas"
-                        data-status="vacio" >
+                        data-status="vacio">
 
                     </div>
                     <div class="col-2 col-md-1 fila" id="pma3" data-id="pma3" data-position="3" data-categoria="magicas"
-                        data-status="vacio" >
+                        data-status="vacio">
 
                     </div>
                     <div class="col-2 col-md-1 fila" id="pma4" data-id="pma4" data-position="4" data-categoria="magicas"
-                        data-status="vacio" >
+                        data-status="vacio">
 
                     </div>
                     <div class="col-2 col-md-1 fila" id="pma5" data-id="pma5" data-position="5" data-categoria="magicas"
-                        data-status="vacio" >
+                        data-status="vacio">
 
                     </div>
 
@@ -255,11 +248,11 @@
                     <img src="img/mazo.png" id="mazoPlayer" class="mb-2">
 
                     <div id="totalDeckPlayer">
-                        <h5>45</h5>
+
                     </div>
                 </div>
 
-              
+
             </div>
         </div>
 
