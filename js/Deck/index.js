@@ -872,6 +872,7 @@ class Deck {
 		const defenderDefense = parseInt(defender.defensa);
 
 		let playerMonsterYugiDivs;
+		let playerMonsterPlayerDivs;
 
 		switch (true) {
 			case attackerAttack > defenderDefense &&
@@ -879,26 +880,7 @@ class Deck {
 				// Caso 1: El ataque de selectedPlayerMonster es mayor que la defensa de selectedRivalMonster en posición de defensa
 				// Agregar lógica aquí para destruir el monstruo rival en posición de defensa (si es necesario)
 
-				playerMonsterYugiDivs = document.querySelectorAll(
-					`[data-status="lleno-monstruo-yugi"]`
-				);
-
-				for (const div of playerMonsterYugiDivs) {
-					const img = div.querySelector('img');
-					if (img && img.dataset.id === defender.id) {
-						const canvas = div.querySelector('canvas');
-						const p = div.querySelector('p');
-
-						div.setAttribute('data-status', 'vacio-monstruo-yugi');
-						img.remove();
-						p.remove();
-						canvas.classList.remove('oculto');
-
-						break; // Rompe el bucle si se encuentra la coincidencia
-					}
-				}
-
-				playerMonsterYugiDivs = null;
+				this.destroyMonsterYugi(defender);
 
 				this.damage = 0;
 				this.selectedPlayerMonster = null;
@@ -911,32 +893,14 @@ class Deck {
 			case attackerAttack > defenderAttack &&
 				defender.position === 'ataque':
 				// Caso 2: El ataque de selectedPlayerMonster es mayor que el ataque de selectedRivalMonster en posición de ataque
+
+				this.destroyMonsterYugi(defender);
 				this.damage = attackerAttack - defenderAttack;
 				this.lpYugi -= this.damage; // Restar la diferencia al LP de Yugi
+
 				this.damage = 0;
 				this.selectedPlayerMonster = null;
 				this.selectedRivalMonster = null;
-
-				playerMonsterYugiDivs = document.querySelectorAll(
-					`[data-status="lleno-monstruo-yugi"]`
-				);
-
-				for (const div of playerMonsterYugiDivs) {
-					const img = div.querySelector('img');
-					if (img && img.dataset.id === defender.id) {
-						const canvas = div.querySelector('canvas');
-						const p = div.querySelector('p');
-
-						div.setAttribute('data-status', 'vacio-monstruo-yugi');
-						img.remove();
-						p.remove();
-						canvas.classList.remove('oculto');
-
-						break; // Rompe el bucle si se encuentra la coincidencia
-					}
-				}
-
-				playerMonsterYugiDivs = null;
 
 				return {
 					success: true,
@@ -946,14 +910,14 @@ class Deck {
 			case attackerAttack < defenderAttack &&
 				defender.position === 'ataque':
 				// Caso 3: El ataque de selectedPlayerMonster es menor que el ataque de selectedRivalMonster en posición de ataque
+				this.destroyMonsterPlayer(attacker);
+
 				this.damage = defenderAttack - attackerAttack;
 				this.lpPlayer -= this.damage; // Restar la diferencia al LP de Player
+
 				this.damage = 0;
 				this.selectedPlayerMonster = null;
 				this.selectedRivalMonster = null;
-
-				console.log(attacker);
-				console.log(defender);
 
 				return {
 					success: false,
@@ -964,12 +928,13 @@ class Deck {
 			case attackerAttack === defenderAttack:
 				// Caso 4: El ataque de selectedPlayerMonster es igual al ataque de selectedRivalMonster
 				// Agregar lógica aquí para destruir ambos monstruos (si es necesario)
+				this.destroyMonsterPlayer(attacker);
+
+				this.destroyMonsterYugi(defender);
+
 				this.damage = 0;
 				this.selectedPlayerMonster = null;
 				this.selectedRivalMonster = null;
-
-				console.log(attacker);
-				console.log(defender);
 
 				return {
 					success: true,
@@ -983,10 +948,10 @@ class Deck {
 				this.selectedPlayerMonster = null;
 				this.selectedRivalMonster = null;
 
-				console.log(attacker);
-				console.log(defender);
-
-				return { success: false };
+				return {
+					success: false,
+					message: 'La defensa y el ataque son iguales.',
+				};
 
 			case attackerAttack < defenderDefense &&
 				defender.position === 'defensa':
@@ -997,9 +962,6 @@ class Deck {
 				this.damage = 0;
 				this.selectedPlayerMonster = null;
 				this.selectedRivalMonster = null;
-
-				console.log(attacker);
-				console.log(defender);
 
 				return {
 					success: false,
@@ -1013,6 +975,56 @@ class Deck {
 		this.selectedRivalMonster = null;
 
 		return { success: false };
+	};
+
+	destroyMonsterYugi = (defender) => {
+		let playerMonsterYugiDivs;
+
+		playerMonsterYugiDivs = document.querySelectorAll(
+			`[data-status="lleno-monstruo-yugi"]`
+		);
+
+		for (const div of playerMonsterYugiDivs) {
+			const img = div.querySelector('img');
+			if (img && img.dataset.id === defender.id) {
+				const canvas = div.querySelector('canvas');
+				const p = div.querySelector('p');
+
+				div.setAttribute('data-status', 'vacio-monstruo-yugi');
+				img.remove();
+				p.remove();
+				canvas.classList.remove('oculto');
+
+				break;
+			}
+		}
+
+		playerMonsterYugiDivs = null;
+	};
+
+	destroyMonsterPlayer = (attacker) => {
+		let playerMonsterPlayerDivs;
+
+		playerMonsterPlayerDivs = document.querySelectorAll(
+			`[data-status="lleno-monstruo"]`
+		);
+
+		for (const div of playerMonsterPlayerDivs) {
+			const img = div.querySelector('img');
+			if (img && img.dataset.id === attacker.id) {
+				const canvas = div.querySelector('canvas');
+				const p = div.querySelector('p');
+
+				div.setAttribute('data-status', 'vacio-monstruo');
+				img.remove();
+				p.remove();
+				canvas.classList.remove('oculto');
+
+				break; // Rompe el bucle si se encuentra la coincidencia
+			}
+		}
+
+		playerMonsterPlayerDivs = null;
 	};
 
 	mainPhase = (player) => {
