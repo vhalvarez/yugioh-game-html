@@ -96,17 +96,6 @@ img {
     transition: value 1s ease; /* Puedes ajustar la duración y la función de temporización según tus preferencias */
 }
 
-/* .vida{
-	-webkit-appearance: none;
-	-moz-appearance: none;
-	appearance: none;
-	border: thin solid rgba(255, 255, 255, 0.5);
-	position: relative;
-	width: 190px;
-	height: 20px;
-	color: blue;
-} */
-
 .glass {
 	background: rgba(0, 0, 0, 0.5);
 	border-radius: 16px;

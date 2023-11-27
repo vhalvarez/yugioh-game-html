@@ -35,6 +35,7 @@ class Deck {
 		this.selectedPlayerMonster = null;
 		this.selectedRivalMonster = null;
 		this.monstersAttackedStatus = {};
+		this.yugiMonstersInAttackPosition = [];
 
 		this.damage = 0;
 
@@ -105,7 +106,7 @@ class Deck {
 
 		if (this.currentPhase !== 'main') {
 			alert('No puedes colocar cartas fuera de la Main Phase.');
-			return false;
+			return;
 		}
 
 		return true;
@@ -350,6 +351,220 @@ class Deck {
 		}
 	};
 
+	isMonsterDestroyed = (monsterId) => {
+		const yugiMonsters = document.querySelectorAll(
+			`[data-status="lleno-monstruo-yugi"] [data-position="ataque"][data-id="${monsterId}"]`
+		);
+		return yugiMonsters.length === 0;
+	};
+
+	getYugiMonstersAttack = () => {
+		let yugiMonsters = document.querySelectorAll(
+			'[data-status="lleno-monstruo-yugi"]'
+		);
+
+		// Filtrar la lista actualizada de monstruos en posición de ataque
+		const updatedMonsters = Array.from(yugiMonsters).filter((monster) => {
+			const img = monster.querySelector('img[data-position="ataque"]');
+			const monsterInfo = img
+				? {
+						id: img.dataset.id,
+						position: img.dataset.position,
+						ataque: img.dataset.ataque,
+						defensa: img.dataset.defensa,
+						name: img.dataset.name,
+				  }
+				: null;
+
+			return img && !this.isMonsterDestroyed(monsterInfo.id);
+		});
+
+		// Actualizar la lista con los monstruos que siguen en posición de ataque
+		this.yugiMonstersInAttackPosition = updatedMonsters.map((monster) => ({
+			id: monster.querySelector('img[data-position="ataque"]').dataset.id,
+			position: monster.querySelector('img[data-position="ataque"]')
+				.dataset.position,
+			ataque: monster.querySelector('img[data-position="ataque"]').dataset
+				.ataque,
+			defensa: monster.querySelector('img[data-position="ataque"]')
+				.dataset.defensa,
+			name: monster.querySelector('img[data-position="ataque"]').dataset
+				.name,
+		}));
+
+		// console.log(this.yugiMonstersInAttackPosition);
+	};
+
+	yugiRandomAttack = () => {
+		// Obtener monstruos de Yugi en posición de ataque
+		let yugiMonsters = this.yugiMonstersInAttackPosition;
+
+		// Verificar si Yugi tiene monstruos en posición de ataque
+		if (yugiMonsters.length > 0) {
+			// Seleccionar un monstruo aleatorio de Yugi
+			const randomYugiMonster =
+				yugiMonsters[Math.floor(Math.random() * yugiMonsters.length)];
+
+			// Obtener monstruos del jugador
+			let playerMonsters = document.querySelectorAll(
+				'[data-status="lleno-monstruo"]'
+			);
+
+			// Verificar si el jugador tiene monstruos para atacar
+			if (playerMonsters.length > 0) {
+				// Seleccionar un monstruo aleatorio del jugador
+				const randomPlayerMonster =
+					playerMonsters[
+						Math.floor(Math.random() * playerMonsters.length)
+					];
+
+				const playerMonsterInfo = {
+					id: randomPlayerMonster.querySelector('img').dataset.id,
+					position:
+						randomPlayerMonster.querySelector('img').dataset
+							.position,
+					ataque: randomPlayerMonster.querySelector('img').dataset
+						.ataque,
+					defensa:
+						randomPlayerMonster.querySelector('img').dataset
+							.defensa,
+					name: randomPlayerMonster.querySelector('img').dataset.name,
+				};
+
+				alert(
+					`Monstruo de Yugi ${randomYugiMonster.name} ataca a ${playerMonsterInfo.name}`
+				);
+
+				this.atkYugiCalculate(randomYugiMonster, playerMonsterInfo);
+			} else {
+				console.log('El jugador no tiene monstruos para atacar. Se ataca directamente a los puntos de vida.');
+				this.lpPlayer -= randomYugiMonster.ataque;
+			}
+		} else {
+			console.log('Yugi no tiene monstruos en posición de ataque.');
+			return;
+		}
+	};
+
+	atkYugiCalculate = (attackerInfo, defenderInfo) => {
+		const attackerAttack = parseInt(attackerInfo.ataque);
+		const defenderAttack = parseInt(defenderInfo.ataque);
+		const defenderDefense = parseInt(defenderInfo.defensa);
+		const defenderPosition = defenderInfo.position;
+
+		switch (true) {
+			case attackerAttack > defenderDefense &&
+				defenderPosition === 'defensa':
+				// Caso 1: El ataque del atacante es mayor que la defensa del defensor en posición de defensa
+				// Agregar lógica aquí para destruir el monstruo defensor en posición de defensa (si es necesario)
+
+				// Ejemplo: Destruir el monstruo defensor en posición de defensa
+				this.destroyMonsterPlayer(defenderInfo);
+
+				// Restablecer variables después del ataque
+				this.resetAfterAttack();
+
+				return {
+					success: true,
+					message: 'Se venció al monstruo del player en defensa',
+				};
+
+			case attackerAttack > defenderAttack &&
+				defenderPosition === 'ataque':
+				// Caso 2: El ataque del atacante es mayor que el ataque del defensor en posición de ataque
+
+				// Ejemplo: Destruir el monstruo defensor en posición de ataque
+				this.destroyMonsterPlayer(defenderInfo);
+
+				// Calcular el daño al LP del defensor
+				this.damage = attackerAttack - defenderAttack;
+				this.lpPlayer -= this.damage;
+
+				// Restablecer variables después del ataque
+				this.resetAfterAttack();
+
+				return {
+					success: true,
+					message: 'Se venció al monstruo del Player',
+				};
+
+			case attackerAttack < defenderAttack &&
+				defenderPosition === 'ataque':
+				// Caso 3: El ataque del atacante es menor que el ataque del defensor en posición de ataque
+
+				// Ejemplo: Destruir el monstruo atacante
+				this.destroyMonsterYugi(attackerInfo);
+
+				// Calcular el daño al LP del atacante
+				this.damage = defenderAttack - attackerAttack;
+				this.lpYugi -= this.damage;
+
+				// Restablecer variables después del ataque
+				this.resetAfterAttack();
+
+				return {
+					success: false,
+					message:
+						'El ataque del jugador es menor que el ataque del atacante',
+				};
+
+			case attackerAttack === defenderAttack:
+				// Caso 4: El ataque del atacante es igual al ataque del defensor
+
+				// Ejemplo: Destruir ambos monstruos
+				this.destroyMonsterPlayer(defenderInfo);
+				this.destroyMonsterYugi(attackerInfo);
+
+				// Restablecer variables después del ataque
+				this.resetAfterAttack();
+
+				return {
+					success: true,
+					message: 'Se destruyeron ambos monstruos',
+				};
+
+			case attackerAttack === defenderDefense:
+				// Caso 5: El ataque del atacante es igual a la defensa del defensor
+
+				// Agregar lógica aquí para manejar el caso en que no ocurre daño
+
+				// Restablecer variables después del ataque
+				this.resetAfterAttack();
+
+				return {
+					success: false,
+					message: 'La defensa y el ataque son iguales.',
+				};
+
+			case attackerAttack < defenderDefense &&
+				defenderPosition === 'defensa':
+				// Caso 6: El ataque del atacante es menor que la defensa del defensor en posición de defensa
+
+				// Calcular el daño al LP del atacante
+				this.damage = defenderDefense - attackerAttack;
+				this.lpYugi -= this.damage;
+
+				// Restablecer variables después del ataque
+				this.resetAfterAttack();
+
+				return {
+					success: false,
+					message:
+						'La defensa del monstruo defensor es mayor que el ataque',
+				};
+
+			default:
+				// Otro caso no manejado
+				return { success: false, message: 'Caso no manejado' };
+		}
+	};
+
+	resetAfterAttack = () => {
+		this.damage = 0;
+		this.selectedPlayerMonster = null;
+		this.selectedRivalMonster = null;
+	};
+
 	drawPhaseComputer = (player) => {
 		const card = this.decks[player].shift();
 
@@ -461,7 +676,7 @@ class Deck {
 		let ataque = null;
 		let defensa = null;
 
-		const isAttackPosition = Math.random() < 0.5;
+		const isAttackPosition = Math.random() < 0.7;
 
 		if (!isAttackPosition) {
 			// Si no es posición de ataque, cambiar el estilo y agregar el atributo de defensa
@@ -504,17 +719,37 @@ class Deck {
 		divContainer2.classList.add('oculto');
 		divContainer2.classList.remove('mostrar');
 		this.hasPlacedCard[player] = false;
-		this.currentPhase = 'draw';
-		// console.log(`Yugi jugó la carta aleatoria desde la mano:`, imageData);
+
+		this.currentPhase = 'battle';
+
+		setTimeout(() => {
+			alert(`Atk Phase Yugi Muto`);
+
+			this.getYugiMonstersAttack();
+
+			setTimeout(() => {
+				this.yugiRandomAttack();
+			}, 4000);
+		}, 4000);
 	};
 
 	playComputer = () => {
 		let player = 'yugi'; // Yugi es la computadora en este caso
 
 		// Colocar carta en mano
-		this.drawPhaseComputer(player);
-		this.updateTotalDeckCount(player);
-		this.mainPhaseComputer(player);
+		const self = this;
+
+		setTimeout(() => {
+			console.log('Draw Phase - Computer');
+			self.drawPhaseComputer(player);
+			self.updateTotalDeckCount(player);
+			// Update Total Deck Count
+			setTimeout(() => {
+				console.log('Main Phase - Computer');
+
+				self.mainPhaseComputer(player);
+			}, 2000);
+		}, 2000);
 
 		this.hasDrawnCard = {
 			player: false,
@@ -595,6 +830,7 @@ class Deck {
 	};
 
 	drawPhase = (player) => {
+		const self = this;
 		this.mainPhaseButton.disabled = true;
 		this.battlePhaseButton.disabled = true;
 		this.endPhaseButton.disabled = true;
@@ -618,7 +854,10 @@ class Deck {
 
 		if (this.currentPlayer === 2 && player === 'yugi') {
 			this.playComputer();
-			this.endPhase();
+
+			setTimeout(() => {
+				self.endPhase();
+			}, 15000);
 		}
 	};
 
@@ -668,10 +907,10 @@ class Deck {
 	};
 
 	atkPhase = () => {
-		// if (this.turnCount === 1 && this.currentPlayer === 1) {
-		// 	alert('No puedes atacar en el primer turno.');
-		// 	return;
-		// }
+		if (this.turnCount === 1 && this.currentPlayer === 1) {
+			alert('No puedes atacar en el primer turno.');
+			return;
+		}
 
 		this.currentPhase = 'battle';
 		this.mainPhaseButton.disabled = true;
@@ -844,10 +1083,6 @@ class Deck {
 			this.selectedRivalMonster
 		);
 
-		console.log(data);
-		console.log(this.lpYugi);
-		console.log(this.lpPlayer);
-
 		// Actualiza los LP del rival según el resultado del ataque
 		// if (damage.success) {
 		// 	this.lpYugi -= damage.damage;
@@ -870,9 +1105,6 @@ class Deck {
 		const attackerAttack = parseInt(attacker.ataque);
 		const defenderAttack = parseInt(defender.ataque);
 		const defenderDefense = parseInt(defender.defensa);
-
-		let playerMonsterYugiDivs;
-		let playerMonsterPlayerDivs;
 
 		switch (true) {
 			case attackerAttack > defenderDefense &&
@@ -1108,7 +1340,6 @@ class Deck {
 		return this.decks[player].length;
 	};
 
-	// Función para actualizar el total del deck del jugador en el elemento HTML
 	updateTotalDeckCount = (player) => {
 		const totalDeckElement = document.getElementById(
 			`totalDeck${player.charAt(0).toUpperCase()}${player.slice(1)}`
