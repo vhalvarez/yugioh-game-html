@@ -1,10 +1,16 @@
-class Deck {
+class YugiohGame {
+	/**
+	 * La función constructora inicializa varias propiedades y configura controladores de eventos para el
+	 * juego.
+	 */
 	constructor() {
 		this.quantity = 100;
-		// this.apiUrl = 'https://db.ygoprodeck.com/api/v7/cardinfo.php';
-		this.apiUrl =
+		this.apiUrlSpell =
+			'https://db.ygoprodeck.com/api/v7/cardinfo.php?type=spell%20card&race=equip&num=10&offset=0';
+		this.apiUrlMonster =
 			'https://db.ygoprodeck.com/api/v7/cardinfo.php?type=normal%20monster&level=4';
-		this.cards = [];
+		this.cardsMonster = [];
+		this.cardsSpell = [];
 		this.decks = {
 			yugi: [],
 			player: [],
@@ -48,12 +54,32 @@ class Deck {
 		this.updateProgressBars();
 	}
 
+	/* El código anterior define una función asincrónica llamada "getRandomCards". Esta función realiza
+	dos solicitudes de API utilizando "fetch" para recuperar datos de cartas de monstruos y cartas de
+	hechizos. Luego asigna los datos de respuesta para crear una serie de objetos para cada tarjeta,
+	incluidas propiedades como identificación, nombre, tipo, descripción, ataque, defensa e imageUrl.
+	La función maneja cualquier error que ocurra durante las solicitudes de API y los registra en la
+	consola. */
 	getRandomCards = async () => {
 		try {
-			const response = await fetch(this.apiUrl);
-			const data = await response.json();
-			const cards = data.data;
-			this.cards = cards.map((card) => ({
+			const [monsterResponse, spellResponse] = await Promise.all([
+				fetch(this.apiUrlMonster).then((response) => response.json()),
+				fetch(this.apiUrlSpell).then((response) => response.json()),
+			]);
+
+			const cardsMonster = monsterResponse.data;
+			this.cardsMonster = cardsMonster.map((card) => ({
+				id: card.id.toString(),
+				name: card.name,
+				type: card.type,
+				desc: card.desc,
+				attack: card.atk,
+				defense: card.def,
+				imageUrl: card.card_images[0].image_url,
+			}));
+
+			const cardsSpell = spellResponse.data;
+			this.cardsSpell = cardsSpell.map((card) => ({
 				id: card.id.toString(),
 				name: card.name,
 				type: card.type,
@@ -64,21 +90,30 @@ class Deck {
 			}));
 		} catch (error) {
 			console.error('Error al obtener cartas:', error);
+			return;
 		}
 	};
 
+	/* El código anterior define una función llamada `addEndPhaseClickHandler` que agrega un detector de
+	eventos de clic a un elemento de botón con el ID `endPhaseButton`. Cuando se hace clic en el botón,
+	se llama a la función `endPhase`. */
 	addEndPhaseClickHandler = () => {
 		this.endPhaseButton.addEventListener('click', () => {
 			this.endPhase();
 		});
 	};
 
+	/* El código anterior define una función llamada `addAtkPhaseClickHandler` que agrega un detector de
+	eventos de clic a un elemento de botón con el ID `battlePhaseButton`. Cuando se hace clic en el
+	botón, se llama a la función `atkPhase`. */
 	addAtkPhaseClickHandler = () => {
 		this.battlePhaseButton.addEventListener('click', () => {
 			this.atkPhase();
 		});
 	};
 
+	/* El código anterior define una función llamada "dragStart" en JavaScript. Esta función es un
+	controlador de eventos para el evento "dragstart". */
 	dragStart = (event) => {
 		if (this.currentPhase !== 'main') {
 			event.preventDefault();
@@ -101,6 +136,11 @@ class Deck {
 		event.dataTransfer.setData('text/plain', jsonData);
 	};
 
+	/* El código anterior define una función llamada "allowDrop" en JavaScript. Esta función se utiliza
+	como controlador de eventos para el evento "dragover". Previene el comportamiento predeterminado
+	del evento y verifica si la fase actual no es igual a 'principal'. Si no es así, muestra un mensaje
+	de alerta que dice que las cartas no se pueden colocar fuera de la Fase Principal. Si la fase
+	actual es "principal", devuelve verdadero. */
 	allowDrop = (event) => {
 		event.preventDefault();
 
@@ -112,7 +152,9 @@ class Deck {
 		return true;
 	};
 
-	drop = (event, dropArea) => {
+	/* El código anterior es una función de JavaScript llamada "dropMonster" que se utiliza para manejar
+	la caída de una carta de monstruo en un área específica en un juego de cartas. */
+	dropMonster = (event, dropArea) => {
 		event.preventDefault();
 
 		let player = this.currentPlayer === 1 ? 'player' : 'yugi';
@@ -235,6 +277,70 @@ class Deck {
 		}
 	};
 
+	/* El código anterior es una función de JavaScript llamada `dropMagic` que se utiliza para manejar la
+	caída de una carta de hechizo en un área de colocación específica. */
+	dropMagic = (event, dropArea) => {
+		event.preventDefault();
+
+		if (dropArea.querySelector('img')) {
+			alert('Ya hay una carta en esta área. Elige otro lugar.');
+			return;
+		}
+
+		const jsonData = event.dataTransfer.getData('text/plain');
+		const imageData = JSON.parse(jsonData);
+
+		if (imageData.tipo !== 'Spell Card') {
+			alert('Solo puedes colocar cartas de hechizo en esta área.');
+			return;
+		}
+
+		const draggedElement = document.querySelector(
+			'.cartasacada[draggable="true"]:hover'
+		);
+
+		const idCard = draggedElement.getAttribute('data-id_carta');
+		imageData.id_carta = idCard;
+
+		const canvas = event.target;
+		canvas.classList.add('oculto');
+
+		// Crear un nuevo elemento de imagen y mostrar la imagen en el área de caída
+		const imgElement = document.createElement('img');
+		imgElement.src = '/img/mazo.jpg';
+
+		// Agregar la imagen al área de caída
+		dropArea.dataset.status = 'lleno-magica';
+		dropArea.appendChild(imgElement);
+
+		// reset de la mano
+		const hand = document.getElementById('cartasManoPlayer');
+
+		console.log(imageData.id);
+
+		const handCard = hand.querySelector(`[data-id="${imageData.id}"]`);
+
+		if (handCard) {
+			handCard.src = 'img/mazo.jpg';
+			handCard.dataset.status = 'vacio';
+			handCard.dataset.tipo = '';
+			handCard.dataset.ataque = '';
+			handCard.dataset.defensa = '';
+			handCard.dataset.name = '';
+			handCard.dataset.img = '';
+			handCard.draggable = true;
+
+			const divContainer = handCard.closest('.fila');
+
+			divContainer.classList.add('oculto');
+			divContainer.classList.remove('mostrar');
+		}
+	};
+
+	/* El código anterior agrega controladores de eventos de arrastrar y soltar a ciertos elementos de la
+	página. Primero selecciona todos los elementos con la clase "cartasacada" que tienen el atributo
+	"arrastrable" establecido en "verdadero". Luego agrega un detector de eventos "dragstart" a cada
+	uno de estos elementos. */
 	addDragAndDropHandlers = () => {
 		const draggableElements = document.querySelectorAll(
 			'.cartasacada[draggable="true"]'
@@ -244,41 +350,65 @@ class Deck {
 			element.addEventListener('dragstart', this.dragStart);
 		});
 
-		// acomodar esto
-		const dropAreas = document.querySelectorAll(
-			'.fila[data-status="vacio-monstruo"]'
+		const dropAreasMonstruos = document.querySelectorAll(
+			'.fila[data-categoria="monstruo-player"]'
+		);
+		const dropAreasMagicas = document.querySelectorAll(
+			'.fila[data-categoria="magicas-player"]'
 		);
 
-		dropAreas.forEach((area) => {
+		dropAreasMonstruos.forEach((area) => {
 			area.addEventListener('dragover', this.allowDrop);
-			area.addEventListener('drop', (event) => this.drop(event, area));
+			area.addEventListener('drop', (event) =>
+				this.dropMonster(event, area)
+			);
+		});
+
+		dropAreasMagicas.forEach((area) => {
+			area.addEventListener('dragover', this.allowDrop);
+			area.addEventListener('drop', (event) =>
+				this.dropMagic(event, area)
+			);
 		});
 	};
 
+	/* El código anterior define una función llamada "assembleDecks" en JavaScript. Esta función se
+	encarga de crear dos mazos de cartas para un juego. */
 	assembleDecks = () => {
-		const size = this.cards.length;
-		const validatorDeck = new Set();
+		// Función para obtener una carta aleatoria según su tipo
+		const getRandomCard = (type) => {
+			const cards =
+				type === 'monster' ? this.cardsMonster : this.cardsSpell;
+			return cards[Math.floor(Math.random() * cards.length)];
+		};
+
 		const deck1 = [];
 		const deck2 = [];
-		let index1 = 0;
-		let index2 = 0;
 
-		while (validatorDeck.size < this.quantity) {
-			const randomCard = this.cards[Math.floor(Math.random() * size)];
-
-			if (validatorDeck.has(randomCard)) continue;
-
-			validatorDeck.add(randomCard);
-
-			validatorDeck.size <= this.quantity / 2
-				? (deck1[index1++] = randomCard)
-				: (deck2[index2++] = randomCard);
+		// Agregar cartas de monstruos a los mazos
+		while (deck1.length < this.quantity / 2) {
+			deck1.push(getRandomCard('monster'));
 		}
+
+		while (deck2.length < 40) {
+			deck2.push(getRandomCard('monster'));
+		}
+
+		// Agregar cartas de hechizos a los mazos
+		while (deck2.length < 40 + 10) {
+			deck2.push(getRandomCard('spell'));
+		}
+
+		// Barajar los mazos
+		deck1.sort(() => Math.random() - 0.5);
+		deck2.sort(() => Math.random() - 0.5);
 
 		this.decks.yugi = deck1;
 		this.decks.player = deck2;
 	};
 
+	/* El código anterior es una función de JavaScript llamada "dealCards". Toma dos parámetros:
+	`posiciones` (una matriz de posiciones) y `jugador` (una cadena que representa al jugador). */
 	dealCards = (positions, player) => {
 		let playerCards =
 			player === 'yugi' ? this.decks.yugi : this.decks.player;
@@ -305,18 +435,20 @@ class Deck {
 			}
 
 			if (player === 'player') {
-				defensa = document.createElement('p');
-				defensa.setAttribute('id', `defense-${position}`);
-				defensa.textContent = `${card.defense}`;
-				defensa.style.color = 'gray';
+				if (card.type === 'Normal Monster') {
+					defensa = document.createElement('p');
+					defensa.setAttribute('id', `defense-${position}`);
+					defensa.textContent = `${card.defense}`;
+					defensa.style.color = 'gray';
 
-				ataque = document.createElement('p');
-				ataque.setAttribute('id', `ataque-${position}`);
-				ataque.textContent = `${card.attack}`;
-				ataque.style.color = 'green';
+					ataque = document.createElement('p');
+					ataque.setAttribute('id', `ataque-${position}`);
+					ataque.textContent = `${card.attack}`;
+					ataque.style.color = 'green';
 
-				itemCard.insertAdjacentElement('afterend', defensa);
-				itemCard.insertAdjacentElement('afterend', ataque);
+					itemCard.insertAdjacentElement('afterend', defensa);
+					itemCard.insertAdjacentElement('afterend', ataque);
+				}
 			}
 
 			itemCard.src = player === 'yugi' ? './img/mazo.jpg' : card.imageUrl;
@@ -326,14 +458,7 @@ class Deck {
 			itemCard.dataset.ataque = card.attack;
 			itemCard.dataset.defensa = card.defense;
 			itemCard.dataset.id_carta = card.id;
-
-			if (player === 'player') {
-				itemCard.dataset.id = position;
-				// Agrega el manejador de clic aquí
-				itemCard.addEventListener('click', () => {
-					this.getDataCard(itemCard);
-				});
-			}
+			itemCard.dataset.id = position;
 		}
 
 		this.decks[player] = this.decks[player].filter(
@@ -342,15 +467,8 @@ class Deck {
 		);
 	};
 
-	getDataCard = (carObj) => {
-		if (carObj.dataset.status == 'vacio') {
-			this.clickDataCard = carObj;
-		} else {
-			carObj.dataset.status == 'vacio';
-			this.clickDataCard = '';
-		}
-	};
-
+	/* El código anterior define una función llamada `isMonsterDestroyed` en JavaScript. Esta función toma
+	un parámetro "monsterId" y verifica si un monstruo con ese "monsterId" está destruido. */
 	isMonsterDestroyed = (monsterId) => {
 		const yugiMonsters = document.querySelectorAll(
 			`[data-status="lleno-monstruo-yugi"] [data-position="ataque"][data-id="${monsterId}"]`
@@ -358,6 +476,8 @@ class Deck {
 		return yugiMonsters.length === 0;
 	};
 
+	/* El código anterior es una función de JavaScript llamada "getYugiMonstersAttack". Se utiliza para
+	recuperar y actualizar una lista de monstruos Yu-Gi-Oh que están en posición de ataque. */
 	getYugiMonstersAttack = () => {
 		let yugiMonsters = document.querySelectorAll(
 			'[data-status="lleno-monstruo-yugi"]'
@@ -395,6 +515,8 @@ class Deck {
 		// console.log(this.yugiMonstersInAttackPosition);
 	};
 
+	/* El código anterior es una función de JavaScript llamada "yugiRandomAttack". Es parte de un programa
+	o lógica de juego más amplio relacionado con un juego de cartas. */
 	yugiRandomAttack = () => {
 		// Obtener monstruos de Yugi en posición de ataque
 		let yugiMonsters = this.yugiMonstersInAttackPosition;
@@ -436,9 +558,13 @@ class Deck {
 				);
 
 				this.atkYugiCalculate(randomYugiMonster, playerMonsterInfo);
+				this.updateProgressBars();
 			} else {
-				console.log('El jugador no tiene monstruos para atacar. Se ataca directamente a los puntos de vida.');
+				console.log(
+					'El jugador no tiene monstruos para atacar. Se ataca directamente a los puntos de vida.'
+				);
 				this.lpPlayer -= randomYugiMonster.ataque;
+				this.updateProgressBars();
 			}
 		} else {
 			console.log('Yugi no tiene monstruos en posición de ataque.');
@@ -446,6 +572,9 @@ class Deck {
 		}
 	};
 
+	/* El código anterior es una función de JavaScript llamada "atkYugiCalculate". Toma dos parámetros,
+	`attackerInfo` y `defenderInfo`, que son objetos que contienen información sobre el atacante y el
+	defensor. */
 	atkYugiCalculate = (attackerInfo, defenderInfo) => {
 		const attackerAttack = parseInt(attackerInfo.ataque);
 		const defenderAttack = parseInt(defenderInfo.ataque);
@@ -559,12 +688,18 @@ class Deck {
 		}
 	};
 
+	/* El código anterior define una función llamada `resetAfterAttack` en JavaScript. Esta función
+	restablece ciertas variables a sus valores iniciales después de un ataque. Específicamente,
+	establece la variable `daño` en 0 y establece las variables `selectedPlayerMonster` y
+	`selectedRivalMonster` en `null`. */
 	resetAfterAttack = () => {
 		this.damage = 0;
 		this.selectedPlayerMonster = null;
 		this.selectedRivalMonster = null;
 	};
 
+	/* El código anterior es una función de JavaScript llamada "drawPhaseComputer". Se encarga de sacar
+	una carta del mazo y colocarla en la mano del jugador. */
 	drawPhaseComputer = (player) => {
 		const card = this.decks[player].shift();
 
@@ -601,6 +736,8 @@ class Deck {
 		}
 	};
 
+	/* El código anterior es una función de JavaScript llamada "mainPhaseComputer" que representa el turno
+	de un jugador de computadora en un juego de cartas. */
 	mainPhaseComputer = (player) => {
 		// Obtener las cartas disponibles en la mano
 		const availableHandCards = document.querySelectorAll(
@@ -733,6 +870,9 @@ class Deck {
 		}, 4000);
 	};
 
+	/* El código anterior define una función llamada "playComputer" en JavaScript. Esta función representa
+	las acciones que realiza el jugador de la computadora (llamado 'yugi') durante su turno en un
+	juego. */
 	playComputer = () => {
 		let player = 'yugi'; // Yugi es la computadora en este caso
 
@@ -757,6 +897,8 @@ class Deck {
 		};
 	};
 
+	/* El código anterior es una función de JavaScript llamada "drawCard" que se utiliza para robar una
+	carta para un jugador en un juego de cartas. */
 	drawCard = (player) => {
 		if (this.hasDrawnCard[player]) {
 			alert(`El jugador ${player} ya ha robado una carta en este turno.`);
@@ -806,18 +948,20 @@ class Deck {
 			emptyHandSlot.dataset.status = 'lleno';
 			emptyHandSlot.dataset.id = emptyHandSlot.id;
 
-			let defensa = document.createElement('p');
-			defensa.setAttribute('id', `defense-${emptyHandSlot.id}`);
-			defensa.textContent = `${card.defense}`;
-			defensa.style.color = 'gray';
+			if (card.type === 'Normal Monster') {
+				let defensa = document.createElement('p');
+				defensa.setAttribute('id', `defense-${emptyHandSlot.id}`);
+				defensa.textContent = `${card.defense}`;
+				defensa.style.color = 'gray';
 
-			let ataque = document.createElement('p');
-			ataque.setAttribute('id', `ataque-${emptyHandSlot.id}`);
-			ataque.textContent = `${card.attack}`;
-			ataque.style.color = 'green';
+				let ataque = document.createElement('p');
+				ataque.setAttribute('id', `ataque-${emptyHandSlot.id}`);
+				ataque.textContent = `${card.attack}`;
+				ataque.style.color = 'green';
 
-			emptyHandSlot.insertAdjacentElement('afterend', defensa);
-			emptyHandSlot.insertAdjacentElement('afterend', ataque);
+				emptyHandSlot.insertAdjacentElement('afterend', defensa);
+				emptyHandSlot.insertAdjacentElement('afterend', ataque);
+			}
 		} else {
 			alert(
 				`¡El jugador ${player} ya tiene 7 cartas en la mano! Se descarto la carta obtenida.`
@@ -829,6 +973,7 @@ class Deck {
 		// console.log(`Carta robada por ${player}:`, card);
 	};
 
+	/* El código anterior define una función llamada "drawPhase" en JavaScript. */
 	drawPhase = (player) => {
 		const self = this;
 		this.mainPhaseButton.disabled = true;
@@ -861,7 +1006,8 @@ class Deck {
 		}
 	};
 
-	// Handler para el evento de clic en el mazo
+	/* El código anterior define una función llamada `drawCardHandler` en JavaScript. Esta función se
+	utiliza para manejar la lógica para robar una carta en un juego de cartas. */
 	drawCardHandler = () => {
 		if (
 			this.currentPlayer === 1 &&
@@ -891,6 +1037,8 @@ class Deck {
 		}
 	};
 
+	/* El código anterior es una función de JavaScript llamada `checkHandFull` que toma un parámetro
+	`player`. */
 	checkHandFull = (player) => {
 		const hand = document.getElementById(
 			`cartasMano${player.charAt(0).toUpperCase()}${player.slice(1)}`
@@ -906,6 +1054,8 @@ class Deck {
 		return false;
 	};
 
+	/* El código anterior define una función llamada `atkPhase` en JavaScript. Esta función se utiliza
+	para manejar la fase de ataque de un juego. */
 	atkPhase = () => {
 		if (this.turnCount === 1 && this.currentPlayer === 1) {
 			alert('No puedes atacar en el primer turno.');
@@ -923,6 +1073,13 @@ class Deck {
 		this.addClickEventToRivalMonsters();
 	};
 
+	/* El código anterior agrega un detector de eventos de clic a los monstruos jugadores en un juego de
+	cartas. Cuando un jugador hace clic en un monstruo de jugador, el código verifica si el monstruo
+	está en posición de ataque y si ya ha atacado en el turno actual. Si se cumplen las condiciones, el
+	código almacena la información del monstruo del jugador seleccionado en un objeto y alerta al
+	jugador sobre la selección. Si no hay monstruos en el campo del oponente, el código le da al
+	jugador la opción de atacar directamente los puntos de vida del oponente. Si el jugador selecciona
+	dos monstruos, el código pasa a la fase de ataque. */
 	addClickEventToPlayerMonsters = () => {
 		const playerMonsters = document.querySelectorAll(
 			'[data-status="lleno-monstruo"]'
@@ -1011,6 +1168,11 @@ class Deck {
 		});
 	};
 
+	/* El código anterior agrega un detector de eventos de clic a los monstruos rivales en un juego.
+	Cuando se hace clic en un monstruo rival, el código almacena información sobre el monstruo
+	seleccionado en un objeto. También comprueba si ya se ha seleccionado un monstruo rival y muestra
+	un mensaje de alerta en consecuencia. Si se han seleccionado dos monstruos rivales, se activa la
+	función attackPhasePlayer. */
 	addClickEventToRivalMonsters = () => {
 		const rivalMonsters = document.querySelectorAll(
 			'[data-status="lleno-monstruo-yugi"]'
@@ -1062,6 +1224,7 @@ class Deck {
 		});
 	};
 
+	/* El código anterior define una función attackPhasePlayer en JavaScript. */
 	attackPhasePlayer = () => {
 		// Verifica que se hayan seleccionado ambos monstruos
 		if (!this.selectedPlayerMonster || !this.selectedRivalMonster) {
@@ -1083,16 +1246,6 @@ class Deck {
 			this.selectedRivalMonster
 		);
 
-		// Actualiza los LP del rival según el resultado del ataque
-		// if (damage.success) {
-		// 	this.lpYugi -= damage.damage;
-		// 	alert(
-		// 		`¡Ataque exitoso! Yugi pierde ${damage.damage} LP. LP actual de Yugi: ${this.lpYugi}`
-		// 	);
-		// } else {
-		// 	alert(`El ataque no tuvo éxito. LP actual de Yugi: ${this.lpYugi}`);
-		// }
-
 		// Reinicia las variables de monstruos seleccionados
 		this.damage = 0;
 		this.selectedMonstersCount = 0;
@@ -1101,6 +1254,8 @@ class Deck {
 		this.updateProgressBars();
 	};
 
+	/* El código anterior es una función de JavaScript llamada "calculateAttackResult" que calcula el
+	resultado de un ataque entre un atacante y un defensor en un juego. */
 	calculateAttackResult = (attacker, defender) => {
 		const attackerAttack = parseInt(attacker.ataque);
 		const defenderAttack = parseInt(defender.ataque);
@@ -1114,9 +1269,8 @@ class Deck {
 
 				this.destroyMonsterYugi(defender);
 
-				this.damage = 0;
-				this.selectedPlayerMonster = null;
-				this.selectedRivalMonster = null;
+				this.resetAfterAttack();
+
 				return {
 					success: true,
 					message: 'Se vencio al monstruo de yugi en defensa',
@@ -1130,9 +1284,7 @@ class Deck {
 				this.damage = attackerAttack - defenderAttack;
 				this.lpYugi -= this.damage; // Restar la diferencia al LP de Yugi
 
-				this.damage = 0;
-				this.selectedPlayerMonster = null;
-				this.selectedRivalMonster = null;
+				this.resetAfterAttack();
 
 				return {
 					success: true,
@@ -1147,9 +1299,7 @@ class Deck {
 				this.damage = defenderAttack - attackerAttack;
 				this.lpPlayer -= this.damage; // Restar la diferencia al LP de Player
 
-				this.damage = 0;
-				this.selectedPlayerMonster = null;
-				this.selectedRivalMonster = null;
+				this.resetAfterAttack();
 
 				return {
 					success: false,
@@ -1164,9 +1314,7 @@ class Deck {
 
 				this.destroyMonsterYugi(defender);
 
-				this.damage = 0;
-				this.selectedPlayerMonster = null;
-				this.selectedRivalMonster = null;
+				this.resetAfterAttack();
 
 				return {
 					success: true,
@@ -1176,9 +1324,7 @@ class Deck {
 			case attackerAttack === defenderDefense:
 				// Caso 5: El ataque de selectedPlayerMonster es igual a la defensa de selectedRivalMonster
 				// Agregar lógica aquí para manejar el caso en que no ocurre daño
-				this.damage = 0;
-				this.selectedPlayerMonster = null;
-				this.selectedRivalMonster = null;
+				this.resetAfterAttack();
 
 				return {
 					success: false,
@@ -1190,10 +1336,7 @@ class Deck {
 				// Caso 6: El ataque de selectedPlayerMonster es menor que la defensa de selectedRivalMonster en posición de defensa
 				this.damage = defenderDefense - attackerAttack;
 				this.lpPlayer -= this.damage; // Restar la diferencia al LP de Player
-
-				this.damage = 0;
-				this.selectedPlayerMonster = null;
-				this.selectedRivalMonster = null;
+				this.resetAfterAttack();
 
 				return {
 					success: false,
@@ -1209,6 +1352,7 @@ class Deck {
 		return { success: false };
 	};
 
+	/* El código anterior es una función de JavaScript llamada "destroyMonsterYugi". Destruye visualmente al monstruo del Player y coloca nuevamente el canvas. */
 	destroyMonsterYugi = (defender) => {
 		let playerMonsterYugiDivs;
 
@@ -1234,6 +1378,7 @@ class Deck {
 		playerMonsterYugiDivs = null;
 	};
 
+	/* El código anterior es una función de JavaScript llamada "destroyMonsterPlayer". Destruye visualmente al monstruo del Player y coloca nuevamente el canvas. */
 	destroyMonsterPlayer = (attacker) => {
 		let playerMonsterPlayerDivs;
 
@@ -1259,6 +1404,8 @@ class Deck {
 		playerMonsterPlayerDivs = null;
 	};
 
+	/* El código anterior define una función llamada "mainPhase" en JavaScript. Esta función se utiliza
+	para manejar la fase principal de un juego para un jugador específico. */
 	mainPhase = (player) => {
 		this.mainPhaseButton.disabled = false;
 		this.battlePhaseButton.disabled = false;
@@ -1275,6 +1422,8 @@ class Deck {
 		this.hasPlacedCard[player] = true;
 	};
 
+	/* El código anterior es una función de JavaScript llamada "changeTurn". Se utiliza para cambiar el
+	turno en un juego. */
 	changeTurn = () => {
 		this.currentPlayer = this.currentPlayer === 1 ? 2 : 1;
 		this.turnCount++;
@@ -1330,16 +1479,25 @@ class Deck {
 		};
 	};
 
+	/* El código anterior define una función llamada "endPhase" en JavaScript. Esta función establece el
+	valor de `this.currentPhase` en 'draw' y luego llama a otra función llamada `changeTurn()`. */
 	endPhase = () => {
 		this.currentPhase = 'draw';
 		this.changeTurn();
 	};
 
+	/* El código anterior define una función llamada `getTotalDeckCount` en JavaScript. Esta función toma
+	un parámetro llamado "jugador" y devuelve el número total de cartas en el mazo del jugador. El
+	código supone que hay un objeto llamado "barajas" con propiedades que representan la baraja de cada
+	jugador, y cada valor de propiedad es una matriz que representa las cartas en la baraja de ese
+	jugador. */
 	getTotalDeckCount = (player) => {
 		// Lógica para obtener el total de cartas en el mazo del jugador
 		return this.decks[player].length;
 	};
 
+	/* El código anterior define una función llamada `updateTotalDeckCount` en JavaScript. Esta función
+	toma un parámetro llamado `jugador`. */
 	updateTotalDeckCount = (player) => {
 		const totalDeckElement = document.getElementById(
 			`totalDeck${player.charAt(0).toUpperCase()}${player.slice(1)}`
@@ -1352,6 +1510,8 @@ class Deck {
 		}
 	};
 
+	/* El código anterior es una función de JavaScript llamada "updateProgressBars". Es responsable de
+	actualizar las barras de progreso y el texto para el jugador y Yugi en un juego. */
 	updateProgressBars = () => {
 		// Actualiza la barra de progreso del jugador
 		const playerProgressBar = document.getElementById('playerProgressBar');
@@ -1366,12 +1526,56 @@ class Deck {
 		document.getElementById(
 			'yugiLpText'
 		).textContent = `LP: ${this.lpYugi}`;
+
+		// Verifica si el juego debe terminar
+		if (this.lpPlayer <= 0) {
+			// Establece el valor de las barras de progreso en 0
+			playerProgressBar.value = 0;
+			document.getElementById(
+				'playerLpText'
+			).textContent = `LP: ${this.lpPlayer}`;
+
+			// Muestra un mensaje indicando el resultado del juego
+			alert('¡Yugi gana!');
+
+			this.resetGameWithConfirmation();
+		}
+
+		if (this.lpYugi <= 0) {
+			// Establece el valor de las barras de progreso en 0
+			yugiProgressBar.value = 0;
+			document.getElementById(
+				'yugiLpText'
+			).textContent = `LP: ${this.lpYugi}`;
+
+			// Muestra un mensaje indicando el resultado del juego
+			alert('¡GANASTE FELICIDADES!');
+
+			this.resetGameWithConfirmation();
+		}
 	};
 
+	/* El código anterior es una función de JavaScript llamada "resetGameWithConfirmation". Le muestra al
+	usuario un cuadro de diálogo de confirmación que le pregunta si desea reiniciar el juego. Si el
+	usuario confirma, la función recarga la página, reiniciando efectivamente el juego. */
+	resetGameWithConfirmation = () => {
+		// Pregunta al jugador si realmente desea reiniciar el juego
+		const shouldReset = window.confirm('¿Quieres volver a jugar?');
+
+		if (shouldReset) {
+			// Si el jugador confirma, recarga la página para reiniciar el juego
+			window.location.reload();
+		}
+	};
+
+	/* El código anterior define una función llamada "showDecks" en JavaScript. Sin embargo, el cuerpo de
+	la función está comentado, por lo que actualmente no está haciendo nada. Las líneas comentadas
+	sugieren que la función podría estar destinada a registrar el contenido de dos mazos, "Mazo de
+	Yugi" y "Mazo de Player", pero esta funcionalidad está actualmente deshabilitada. */
 	showDecks = () => {
 		// console.log('Mazo de Yugi:', this.decks.yugi);
 		// console.log('Mazo de Player:', this.decks.player);
 	};
 }
 
-export default Deck;
+export default YugiohGame;

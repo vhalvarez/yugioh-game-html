@@ -1,5 +1,5 @@
 import BuildBoardWithCanvas from './Board/index.js';
-import Deck from './Deck/index.js';
+import YugiohGame from './Deck/index.js';
 
 document.addEventListener('DOMContentLoaded', function () {
 	const tableroMonstruoYugi = new BuildBoardWithCanvas(
@@ -26,16 +26,15 @@ document.addEventListener('DOMContentLoaded', function () {
 	);
 	tableroMagicasPlayer.initializeBoard();
 
-	const initializeDeck = new Deck();
+	const initializeDeck = new YugiohGame();
 
 	initializeDeck.getRandomCards().then(() => {
 		initializeDeck.assembleDecks();
+		
 
 		initializeDeck.dealCards(['cy1', 'cy2', 'cy3', 'cy4', 'cy5'], 'yugi');
 
 		initializeDeck.dealCards(['cp1', 'cp2', 'cp3', 'cp4', 'cp5'], 'player');
-
-		// initializeDeck.showDecks();
 	});
 
 	initializeDeck.drawPhase('player');
