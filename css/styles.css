@@ -1,107 +1,400 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+
 body {
-	background-position: center center;
-	background-attachment: fixed;
-	background-repeat: no-repeat;
-	background-size: cover;
-	font-family: sans-serif;
+    background-position: center center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-size: cover;
+    font-family: sans-serif;
+}
+
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    width: 90%;
+    max-width: 1100px;
+    height: 100%;
+    margin: auto;
+    gap: 10px;
+    overflow: hidden;
+    align-items: center;
+}
+
+.columna {
+    flex: 0 0 auto;
+    width: 8.33333333%;
 }
 
 .background {
-	height: auto;
-	padding: 20px;
-	background-repeat: no-repeat;
-	background-position: center;
-	background-size: cover;
-	background: url('../img/fondo/background-sparks.jpg');
-	animation: sparks-move 70s infinite linear;
-	position: relative;
+    height: auto;
+    padding: 20px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    background: url('../img/fondo/background-sparks.jpg');
+    animation: sparks-move 70s infinite linear;
+    position: relative;
+}
+
+.background-home {
+    height: 100vh;
+    padding: 20px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    background: url('../img/fondo/background-sparks.jpg');
+    animation: sparks-move 70s infinite linear;
+    position: relative;
 }
 
 .background::before,
 .background::after {
-	content: '';
-	position: absolute;
-	width: 100%;
-	height: 100%;
-	top: 0;
-	left: 0;
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
 }
+
 .background::before {
-	opacity: 0.7;
-	background: url('../img/fondo/background-fixed-tl.png') left top fixed
-			no-repeat,
-		url('../img/fondo/background-fixed-rb.png') right bottom fixed no-repeat,
-		url('../img/fondo/background-blueflex.png') center center fixed;
-	background-size: auto, auto, 100% 100%;
+    opacity: 0.7;
+    background: url('../img/fondo/background-fixed-tl.png') left top fixed no-repeat,
+        url('../img/fondo/background-fixed-rb.png') right bottom fixed no-repeat,
+        url('../img/fondo/background-blueflex.png') center center fixed;
+    background-size: auto, auto, 100% 100%;
 }
+
 .background::after {
-	background: repeating-linear-gradient(
-		rgba(0, 0, 0, 0.5),
-		rgba(0, 0, 0, 0.5) 1px,
-		rgba(0, 0, 0, 0) 0,
-		rgba(0, 0, 0, 0) 3px
-	);
-	z-index: -10;
+    background: repeating-linear-gradient(rgba(0, 0, 0, 0.5),
+            rgba(0, 0, 0, 0.5) 1px,
+            rgba(0, 0, 0, 0) 0,
+            rgba(0, 0, 0, 0) 3px);
+    z-index: -10;
 }
 
 @keyframes sparks-move {
-	0% {
-		background-position: center top;
-	}
-	100% {
-		background-position: center -1150px;
-	}
+    0% {
+        background-position: center top;
+    }
+
+    100% {
+        background-position: center -1150px;
+    }
 }
 
 img {
-	display: block;
+    display: block;
 }
 
+/* Home */
+.home {
+    width: 100%;
+    display: grid;
+    grid-column: 3/11;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    place-items: center;
+    padding: 20px 0;
+    margin: 20px 0;
+}
+
+.home img {
+    padding: 12px;
+    width: 70%;
+}
+
+.home .btn {
+    padding: 10px 20px;
+    background-color: #0073e6;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    z-index: 100;
+    text-decoration: none;
+    text-transform: uppercase;
+    display: inline-block;
+}
+
+.home .btn:hover {
+    background-color: #004d99;
+}
+
+/* Fin Home */
+
+.personajes {
+    display: grid;
+    justify-content: center;
+    align-content: center;
+    height: auto;
+    padding: 40px 0;
+    grid-column: 1/13;
+    z-index: 100;
+}
+
+.personajes h2 {
+    text-align: center;
+    font-size: 3em;
+    color: white;
+}
+
+.personajes .items {
+    grid-column: 1/-1;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    justify-content: space-evenly;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 12px;
+    padding: 12px;
+}
+
+#seto {
+    background: url("../img/personajes/seto.jpg");
+    width: 220px;
+    height: 250px;
+    align-self: center;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    border-radius: 100%;
+}
+
+#seto:hover {
+    background: url("../img/personajes/seto.png");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    filter: brightness(1);
+    cursor: pointer;
+}
+
+#joey {
+    background: url("../img/personajes/joey2.jpg");
+    width: 220px;
+    height: 250px;
+    align-self: center;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    border-radius: 100%;
+}
+
+#joey:hover {
+    background: url("../img/personajes/joey.jpg");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    filter: brightness(1);
+    cursor: pointer;
+}
+
+#pegasus {
+    background: url("../img/personajes/pegasus.jpg");
+    width: 220px;
+    height: 250px;
+    align-self: center;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    border-radius: 100%;
+}
+
+#pegasus:hover {
+    background: url("../img/personajes/pegasus2.jpg");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    filter: brightness(1);
+    cursor: pointer;
+}
+
+#marik {
+    background: url("../img/personajes/marik.jpg");
+    width: 220px;
+    height: 250px;
+    align-self: center;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    border-radius: 100%;
+}
+
+#marik:hover {
+    background: url("../img/personajes/marik2.jpg");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    filter: brightness(1);
+    cursor: pointer;
+}
+
+.hero {
+    height: 100vh;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+}
+
+.hero__image {
+    z-index: 100;
+    width: 100%;
+    height: 300px;
+    background-size: cover;
+}
+
+.hero__image-right {
+    background-image: linear-gradient(90deg,
+            rgba(0, 0, 0, 1) 10%,
+            rgba(2, 0, 36, 0) 100%),
+        url("../img/personajes/yugi-wallpaper.jpg");
+}
+
+.hero__copy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: white;
+}
+
+.hero__title {
+    font-size: 3em;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.parent {
+    display: grid;
+    grid-column: 1/13;
+    grid-template-columns: 0 repeat(11, 1fr);
+    grid-template-rows: repeat(7, 1fr) repeat(5, 0);
+    grid-column-gap: 0px;
+    grid-row-gap: 0px;
+    text-align: center;
+    z-index: 100;
+    position: relative;
+}
+
+.parent>div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+label {
+    color: white;
+    margin-right: 12px;
+}
+
+.box-inputs {
+    padding: 12px;
+}
+
+.title{
+    color: #fff;
+    padding: 12px;
+}
+
+.subtitle{
+    color: #fff;
+    padding: 12px;
+    margin: 12px 0;
+}
+
+a{
+    padding: 12px;
+    color: #00264b;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.css-input {
+    padding: 8px;
+    font-size: 20px;
+    border-width: 2px;
+    border-color: #0073e6;
+    background-color: #FFFFFF;
+    color: #000000;
+    border-style: solid;
+    border-radius: 12px;
+    box-shadow: 0px 0px 0px rgba(66, 66, 66, .0);
+    text-shadow: 0px 0px 5px rgba(66, 66, 66, .75);
+}
+
+.css-input:focus {
+    outline: none;
+}
+
+/* Juego */
 .global {
-	z-index: 100;
+    z-index: 100;
 }
 
-.botones > div {
-	z-index: 100;
+.botones>div {
+    z-index: 100;
 }
 
 .fila {
-	padding: 20px !important;
-	z-index: 100 !important;
+    padding: 20px !important;
+    z-index: 100 !important;
 }
 
 .fila img {
-	width: 70px;
-	height: 102.25px;
+    width: 70px;
+    height: 102.25px;
 }
+
 .fila img:hover {
-	transform: scale(1.2);
-	cursor: pointer;
+    transform: scale(1.2);
+    cursor: pointer;
 }
 
 .oculto {
-	display: none;
+    display: none;
 }
 
 .mostrar {
-	display: block;
+    display: block;
 }
 
 #tableroMagicasPlayer {
-	z-index: 100;
+    z-index: 100;
 }
 
 .lp-progress {
     width: 70%;
-    transition: value 1s ease; /* Puedes ajustar la duración y la función de temporización según tus preferencias */
+    transition: value 1s ease;
+    /* Puedes ajustar la duración y la función de temporización según tus preferencias */
 }
 
 .glass {
-	background: rgba(0, 0, 0, 0.5);
-	border-radius: 16px;
-	box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-	backdrop-filter: blur(5px);
-	-webkit-backdrop-filter: blur(5px);
-	border: 1px solid rgba(0, 0, 0, 0.3);
-	z-index: 100;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 16px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    z-index: 100;
+}
+
+.lp{
+    color: white;
+}
+
+#win{
+    color: green;
+}
+
+#los{
+    color: red;
 }

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yu-Gi-Oh! | Preparate...</title>
+
+    <link rel="stylesheet" href="./css/styles.css">
+    <link rel="shortcut icon" href="./img/icon/icono.ico" type="image/x-icon">
+
+
+</head>
+
+<body>
+    <div class="background-home">
+        <audio src="./sounds/duelo.mp3" preload autoplay>Error en el sonido</audio>
+        <section class="hero">
+            <div class="hero__image hero__image-left" id="hero__image-left">
+                <div class="hero__copy">
+                    <h2 class="hero__title" id="nombre"></h2>
+                </div>
+            </div>
+
+            <div>
+                <img src="./img/VS.png" alt="">
+            </div>
+
+            <div class="hero__image hero__image-right">
+                <div class="hero__copy">
+                    <h2 class="hero__title">Yugi Muto</h2>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script type="module" src="./js/Preview/index.js"></script>
+
+    <script>
+        window.onload = function () {
+            import("./js/auth/session.js").then((module) => {
+                const { Session } = module
+                const session = new Session();
+                
+                if (!Session.isUserLoggedIn()) {
+                    // Si no está autenticado, redirige a la página de inicio de sesión
+                    location.href = "../login.html";
+                }
+            })
+
+            import('./js/Preview/preview.js').then((module) => {
+                const { Preview } = module;
+                const info = new Preview();
+                info.getDataCharacters();
+                info.updateName()
+                info.redirect();
+            });
+        };
+    </script>
+</body>
+
+</html>
